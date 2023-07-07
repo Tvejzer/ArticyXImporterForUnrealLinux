@@ -44,7 +44,7 @@ FArticyRect::FArticyRect(TSharedPtr<FJsonValue> Json)
 	h = obj->GetNumberField(STRINGIFY(h));
 }
 
-FArticyStdString::FArticyStdString(TSharedPtr<FJsonValue> Json)
+FArticyStdString::FArticyStdString(const TSharedPtr<FJsonValue>& Json)
 {
 	if(!ensure(Json.IsValid() && Json->Type == EJson::String))
 		return;

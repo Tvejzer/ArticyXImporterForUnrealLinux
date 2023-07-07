@@ -29,42 +29,13 @@ public:
 		FText& Key = GetProperty<FText>(PropName);
 		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
 
-		/* const FString KeyAsString = Key.ToString();
-		const int32 DelimiterIndex = KeyAsString.Find(TEXT(":"));
-		if (DelimiterIndex == INDEX_NONE)
-		{
-			// Look up entry in default string table
-			const FText SourceString = FText::FromStringTable(
-				TEXT("ArticyStrings"),
-				KeyAsString,
-				EStringTableLoadingPolicy::FindOrFullyLoad);
-			if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-			{
-				return SourceString;
-			}
-
-			// By default, return the key
-			return Key;
-		}
-
 		// Look up entry in specified string table
-		const FString TableName = KeyAsString.Left(DelimiterIndex);
-		const FString KeyName = KeyAsString.RightChop(DelimiterIndex + 1); 
+		const TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
 		const FText SourceString = FText::FromStringTable(
-			FName(TableName),
-			KeyName,
-			EStringTableLoadingPolicy::FindOrFullyLoad);
-		const FString Decoded = SourceString.ToString();
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *Decoded);
-		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-		{
-			return SourceString;
-		} */
-		
-		const FText SourceString = FText::FromStringTable(
-			TEXT("ArticyStrings"),
+			FName(TableName.GetValue()),
 			Key.ToString(),
 			EStringTableLoadingPolicy::FindOrFullyLoad);
+		const FString Decoded = SourceString.ToString();
 		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
 		{
 			return SourceString;

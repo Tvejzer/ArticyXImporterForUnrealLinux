@@ -49,7 +49,7 @@ FArticyPredefTypes::FArticyPredefTypes()
 				Json->AsString();
 
 			//return a new FText, where the Path is the key and the Property value is the default-language text
-			return FText::ChangeKey(TEXT("ARTICY"), Path, FText::FromString(Processed));
+			return FText::ChangeKey(PackageName, Path, FText::FromString(Processed));
 		}
 		return FText::GetEmpty();
 	});

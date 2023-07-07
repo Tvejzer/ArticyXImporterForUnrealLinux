@@ -179,7 +179,7 @@ struct ARTICYRUNTIME_API FArticyStdString
 public:
 
 	FArticyStdString() = default;
-	FArticyStdString(TSharedPtr<FJsonValue> Json);
+	FArticyStdString(const TSharedPtr<FJsonValue>& Json);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Articy")
 	FText Text;
