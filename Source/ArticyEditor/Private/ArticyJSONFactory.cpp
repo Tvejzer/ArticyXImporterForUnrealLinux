@@ -4,6 +4,7 @@
 
 #include "ArticyJSONFactory.h"
 #include "CoreMinimal.h"
+#include "ArticyArchiveReader.h"
 #include "ArticyImportData.h"
 #include "Editor.h"
 #include "ArticyEditorModule.h"
@@ -20,7 +21,7 @@
 UArticyJSONFactory::UArticyJSONFactory()
 {
 	bEditorImport = true;
-	Formats.Add(TEXT("articyue4;A json file exported from articy:draft"));
+	Formats.Add(TEXT("articyue;A json file exported from articy:draft X"));
 }
 
 UArticyJSONFactory::~UArticyJSONFactory()
@@ -121,10 +122,19 @@ EReimportResult::Type UArticyJSONFactory::Reimport(UObject* Obj)
 	auto Asset = Cast<UArticyImportData>(Obj);
 	if(Asset)
 	{
-		if(!Asset->ImportData || Asset->ImportData->GetFirstFilename().Len() == 0)
+		if(!Asset->ImportData)
 			return EReimportResult::Failed;
 
-		if(ImportFromFile(Asset->ImportData->GetFirstFilename(), Asset))
+		// Don't look for old .articyue4 files
+		if (Asset->ImportData->SourceData.SourceFiles.Num() > 0)
+			Asset->ImportData->SourceData.SourceFiles[0].RelativeFilename.RemoveFromEnd(TEXT("4"));
+		
+		const FString ImportFilename = Asset->ImportData->GetFirstFilename();
+		
+		if(ImportFilename.Len() == 0)
+			return EReimportResult::Failed;
+
+		if(ImportFromFile(ImportFilename, Asset))
 			return EReimportResult::Succeeded;
 	}
 
@@ -133,9 +143,12 @@ EReimportResult::Type UArticyJSONFactory::Reimport(UObject* Obj)
 
 bool UArticyJSONFactory::ImportFromFile(const FString& FileName, UArticyImportData* Asset) const
 {
+	UArticyArchiveReader* Archive = NewObject<UArticyArchiveReader>();
+	Archive->OpenArchive(*FileName);
+	
 	//load file as text file
 	FString JSON;
-	if (!FFileHelper::LoadFileToString(JSON, *FileName))
+	if (!Archive->ReadFile(TEXT("manifest.json"), JSON))
 	{
 		UE_LOG(LogArticyEditor, Error, TEXT("Failed to load file '%s' to string"), *FileName);
 		return false;
@@ -143,10 +156,10 @@ bool UArticyJSONFactory::ImportFromFile(const FString& FileName, UArticyImportDa
 
 	//parse outermost JSON object
 	TSharedPtr<FJsonObject> JsonParsed;
-	TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(JSON);
+	const TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(JSON);
 	if (FJsonSerializer::Deserialize(JsonReader, JsonParsed))
 	{
-		Asset->ImportFromJson(JsonParsed);
+		Asset->ImportFromJson(*Archive, JsonParsed);
 	}
 
 	return true;

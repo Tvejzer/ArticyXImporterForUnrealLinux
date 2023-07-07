@@ -24,7 +24,7 @@ public:
 	virtual FText& GetDisplayName()
 	{
 		static const auto PropName = FName("DisplayName");
-		return GetProperty<FText>(PropName);
+		return GetProperty<FArticyMultiLanguageString>(PropName).Text;
 	}
 
 	virtual const FText& GetDisplayName() const

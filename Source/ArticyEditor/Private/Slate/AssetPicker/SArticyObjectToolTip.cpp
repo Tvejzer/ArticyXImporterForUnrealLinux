@@ -194,7 +194,8 @@ TSharedRef<SWidget> SArticyObjectToolTip::CreateToolTipContent()
 		{
 			const IArticyObjectWithDisplayName* DisplayNameOfSpeaker = Cast<IArticyObjectWithDisplayName>(Speaker);
 			const FText DisplayName = DisplayNameOfSpeaker->GetDisplayName();
-			AddToToolTipInfoBox(InfoBox, LOCTEXT("ArticyObjectToolTipSpeaker", "Speaker"), DisplayName, true);
+			AddToToolTipInfoBox(InfoBox, LOCTEXT("ArticyObjectToolTipSpeaker", "Speaker"),
+				DisplayName, true);
 		}
 		else
 		{

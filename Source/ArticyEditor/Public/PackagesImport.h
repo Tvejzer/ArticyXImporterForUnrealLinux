@@ -13,6 +13,7 @@
 
 
 class UArticyImportData;
+struct FADISettings;
 
 USTRUCT(BlueprintType)
 struct FArticyModelDef
@@ -83,10 +84,11 @@ struct FArticyPackageDef
 
 public:
 
-	void ImportFromJson(const TSharedPtr<FJsonObject> JsonPackage);
+	void ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject>& JsonPackage);
 	void GatherScripts(UArticyImportData* Data) const;
+	void GatherText(const TSharedPtr<FJsonObject>& Json);
 	UArticyPackage* GeneratePackageAsset(UArticyImportData* Data) const;//MM_CHANGE
-
+	TMap<FString, FArticyTexts> GetTexts() const;
 
 	FString GetFolder() const;
 	FString GetFolderName() const;
@@ -103,6 +105,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Package")
 	TArray<FArticyModelDef> Models;
+
+	UPROPERTY(VisibleAnywhere, Category = "Package")
+	TMap<FString, FArticyTexts> Texts;
 };
 
 /** Contains information about all imported packages. */
@@ -113,9 +118,10 @@ struct FArticyPackageDefs
 
 public:
 	
-	void ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Json);
+	void ImportFromJson(const UArticyArchiveReader& Archive, const TArray<TSharedPtr<FJsonValue>>* Json, FADISettings& Settings);
 	void GatherScripts(UArticyImportData* Data) const;
 	void GenerateAssets(UArticyImportData* Data) const;//MM_CHANGE
+	TMap<FString, FArticyTexts> GetTexts(const FString& PackageName) const;
 
 	TSet<FString> GetPackageNames() const;
 private:

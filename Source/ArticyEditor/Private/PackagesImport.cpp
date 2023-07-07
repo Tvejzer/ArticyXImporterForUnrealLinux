@@ -16,6 +16,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include <string>
 
+#include "ArticyArchiveReader.h"
 #include "ArticyPluginSettings.h"
 
 #define STRINGIFY(x) #x
@@ -81,7 +82,7 @@ UArticyObject* FArticyModelDef::GenerateSubAsset(const UArticyImportData* Data, 
 		if (ensure(obj))
 		{
 			obj->Initialize();
-			Data->GetObjectDefs().InitializeModel(obj, *this, Data);
+			Data->GetObjectDefs().InitializeModel(obj, *this, Data, Outer->GetName());
 
 			//SAVE!!
 
@@ -135,26 +136,60 @@ EArticyAssetCategory FArticyModelDef::GetAssetCategoryFromString(const FString C
 
 //---------------------------------------------------------------------------//
 
-void FArticyPackageDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonPackage)
+void FArticyPackageDef::ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject>& JsonPackage)
 {
-	Models.Reset();
-
 	if(!JsonPackage.IsValid())
 		return;
 
+	bool IsIncluded = false;
+	JSON_TRY_BOOL(JsonPackage, IsIncluded);
+
+	if (!IsIncluded)
+		return;
+	
 	JSON_TRY_STRING(JsonPackage, Name);
 	JSON_TRY_STRING(JsonPackage, Description);
 	JSON_TRY_BOOL(JsonPackage, IsDefaultPackage);
 
-	JSON_TRY_ARRAY(JsonPackage, Models,
-	{
-		auto obj = item->AsObject();
-		if(obj.IsValid())
+	// TODO: Store these hashes
+	FString PackageObjectsHash;
+	FString PackageTextsHash;
+	TSharedPtr<FJsonObject> Files;
+	JSON_TRY_OBJECT(JsonPackage, Files, {
+		TSharedPtr<FJsonObject> Objects;
+		if (!Archive.FetchJson(
+			*obj,
+			JSON_SUBSECTION_OBJECTS,
+			PackageObjectsHash,
+			Objects))
 		{
-			FArticyModelDef model;
-			model.ImportFromJson(obj);
-			Models.Add(model);
+			return;
 		}
+
+		Models.Reset();
+		JSON_TRY_ARRAY(Objects, Objects,
+		{
+			auto innerObj = item->AsObject();
+			if(innerObj.IsValid())
+			{
+				FArticyModelDef model;
+				model.ImportFromJson(innerObj);
+				Models.Add(model);
+			}
+		});
+
+		TSharedPtr<FJsonObject> TextData;
+		if (!Archive.FetchJson(
+			*obj,
+			JSON_SUBSECTION_TEXTS,
+			PackageTextsHash,
+			TextData))
+		{
+			return;
+		}
+
+		Texts.Reset();
+		GatherText(TextData);
 	});
 }
 
@@ -236,12 +271,15 @@ const FString FArticyPackageDef::GetName() const
 
 //---------------------------------------------------------------------------//
 
-void FArticyPackageDefs::ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Json)
+void FArticyPackageDefs::ImportFromJson(
+	const UArticyArchiveReader& Archive,
+	const TArray<TSharedPtr<FJsonValue>>* Json,
+	FADISettings& Settings)
 {
-	Packages.Reset();
-
 	if(!Json)
 		return;
+
+	Packages.Reset();
 
 	for(const auto pack : *Json)
 	{
@@ -250,15 +288,50 @@ void FArticyPackageDefs::ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Js
 			continue;
 
 		FArticyPackageDef package;
-		package.ImportFromJson(obj);
+		package.ImportFromJson(Archive, obj);
 		Packages.Add(package);
 	}
+
+	// TODO: Do checks on packages to make sure this is necessary
+	Settings.SetScriptFragmentsRebuilt();
 }
 
 void FArticyPackageDefs::GatherScripts(UArticyImportData* Data) const
 {
 	for(const auto& pack : Packages)
 		pack.GatherScripts(Data);
+}
+
+void FArticyPackageDef::GatherText(const TSharedPtr<FJsonObject>& Json)
+{
+	for (auto JsonValue = Json->Values.CreateConstIterator(); JsonValue; ++JsonValue)
+	{
+		const FString KeyName = (*JsonValue).Key;
+		const TSharedPtr<FJsonValue> Value = (*JsonValue).Value;
+
+		FArticyTexts Text;
+		Text.ImportFromJson(Value->AsObject());
+		Texts.Add(KeyName, Text);
+	}
+}
+
+TMap<FString, FArticyTexts> FArticyPackageDef::GetTexts() const
+{
+	return Texts;
+}
+
+TMap<FString, FArticyTexts> FArticyPackageDefs::GetTexts(const FString& PackageName) const
+{
+	// TODO: This is inefficient - fix it
+	for(const auto& pack : Packages)
+	{
+		if (pack.GetName().Equals(PackageName))
+		{
+			return pack.GetTexts();
+		}
+	}
+
+	return TMap<FString, FArticyTexts>();
 }
 
 void FArticyPackageDefs::GenerateAssets(UArticyImportData* Data) const

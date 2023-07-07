@@ -43,3 +43,11 @@ FArticyRect::FArticyRect(TSharedPtr<FJsonValue> Json)
 	w = obj->GetNumberField(STRINGIFY(w));
 	h = obj->GetNumberField(STRINGIFY(h));
 }
+
+FArticyStdString::FArticyStdString(const TSharedPtr<FJsonValue>& Json)
+{
+	if(!ensure(Json.IsValid() && Json->Type == EJson::String))
+		return;
+
+	Text = FText::AsCultureInvariant(Json->AsString());
+}
