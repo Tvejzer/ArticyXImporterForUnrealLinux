@@ -141,19 +141,16 @@ void FArticyPackageDef::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	if(!JsonPackage.IsValid())
 		return;
 
-	bool IsIncluded = false;
+	JSON_TRY_HEX_ID(JsonPackage, Id);
 	JSON_TRY_BOOL(JsonPackage, IsIncluded);
 
 	if (!IsIncluded)
 		return;
-	
+
 	JSON_TRY_STRING(JsonPackage, Name);
 	JSON_TRY_STRING(JsonPackage, Description);
 	JSON_TRY_BOOL(JsonPackage, IsDefaultPackage);
 
-	// TODO: Store these hashes
-	FString PackageObjectsHash;
-	FString PackageTextsHash;
 	TSharedPtr<FJsonObject> Files;
 	JSON_TRY_OBJECT(JsonPackage, Files, {
 		TSharedPtr<FJsonObject> Objects;
@@ -269,6 +266,16 @@ const FString FArticyPackageDef::GetName() const
 	return Name;
 }
 
+FArticyId FArticyPackageDef::GetId() const
+{
+	return Id;
+}
+
+bool FArticyPackageDef::GetIsIncluded() const
+{
+	return IsIncluded;
+}
+
 //---------------------------------------------------------------------------//
 
 void FArticyPackageDefs::ImportFromJson(
@@ -279,17 +286,77 @@ void FArticyPackageDefs::ImportFromJson(
 	if(!Json)
 		return;
 
-	Packages.Reset();
+	TArray<FArticyPackageDef> PackagesToRemove;
 
-	for(const auto pack : *Json)
+	// Iterate over existing packages
+	for (auto& ExistingPackage : Packages)
+	{
+		bool bExistingPackageFound = false;
+
+		// Iterate over new package list
+		for (const auto pack : *Json)
+		{
+			const auto obj = pack->AsObject();
+			if (!obj.IsValid())
+				continue;
+
+			FArticyPackageDef package;
+			package.ImportFromJson(Archive, obj);
+
+			// If package with the same Id is found
+			if (ExistingPackage.GetId() == package.GetId())
+			{
+				bExistingPackageFound = true;
+
+				// If IsIncluded is set on the new package, replace the existing package
+				if (package.GetIsIncluded())
+				{
+					ExistingPackage = package;
+				}
+				break;
+			}
+		}
+
+		// If existing package was not found in the new package list, mark it for removal
+		if (!bExistingPackageFound)
+		{
+			PackagesToRemove.Add(ExistingPackage);
+		}
+	}
+
+	// Remove packages that don't exist in the new package list
+	for (const auto& PackageToRemove : PackagesToRemove)
+	{
+		Packages.RemoveSingle(PackageToRemove);
+	}
+
+	// Iterate over new package list
+	for (const auto pack : *Json)
 	{
 		const auto obj = pack->AsObject();
-		if(!obj.IsValid())
+		if (!obj.IsValid())
 			continue;
 
 		FArticyPackageDef package;
 		package.ImportFromJson(Archive, obj);
-		Packages.Add(package);
+
+		bool bExistingPackageFound = false;
+
+		// Check if package already exists in the Packages array
+		for (const auto& ExistingPackage : Packages)
+		{
+			if (ExistingPackage.GetId() == package.GetId())
+			{
+				bExistingPackageFound = true;
+				break;
+			}
+		}
+
+		// If package doesn't exist, add it to the Packages array
+		if (!bExistingPackageFound)
+		{
+			Packages.Add(package);
+		}
 	}
 
 	// TODO: Do checks on packages to make sure this is necessary

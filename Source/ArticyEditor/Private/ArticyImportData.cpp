@@ -25,21 +25,46 @@ void FADISettings::ImportFromJson(TSharedPtr<FJsonObject> Json)
 	if (!Json.IsValid())
 		return;
 
+	JSON_TRY_STRING(Json, set_IncludedNodes);
+	if (!set_IncludedNodes.Contains(TEXT("Settings")))
+		return;
+
+	const FArticyId OldRuleSetId = RuleSetId;
+	JSON_TRY_HEX_ID(Json, RuleSetId);
+	if (RuleSetId != OldRuleSetId)
+	{
+		// Different rule set, start over
+		GlobalVariablesHash.Reset();
+		ObjectDefinitionsHash.Reset();
+		ScriptFragmentsHash.Reset();
+	}
+	
 	JSON_TRY_BOOL(Json, set_Localization);
 	JSON_TRY_STRING(Json, set_TextFormatter);
 	JSON_TRY_BOOL(Json, set_UseScriptSupport);
 	JSON_TRY_STRING(Json, ExportVersion);
 }
 
-void FArticyProjectDef::ImportFromJson(const TSharedPtr<FJsonObject> Json)
+void FArticyProjectDef::ImportFromJson(const TSharedPtr<FJsonObject> Json, FADISettings& Settings)
 {
 	if (!Json.IsValid())
 		return;
 
-	JSON_TRY_STRING(Json, Name);
-	JSON_TRY_STRING(Json, DetailName);
+	const FString OldGuid = Guid;
+	const FString OldTechnicalName = TechnicalName;
 	JSON_TRY_STRING(Json, Guid);
 	JSON_TRY_STRING(Json, TechnicalName);
+
+	if (!Guid.Equals(OldGuid) || !TechnicalName.Equals(OldTechnicalName))
+	{
+		// Treat as different export
+		Settings.GlobalVariablesHash.Reset();
+		Settings.ObjectDefinitionsHash.Reset();
+		Settings.ScriptFragmentsHash.Reset();
+	}
+
+	JSON_TRY_STRING(Json, Name);
+	JSON_TRY_STRING(Json, DetailName);
 }
 
 FString FArticyGVar::GetCPPTypeString() const
@@ -461,19 +486,27 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 {
 	// import the main sections
 	Settings.ImportFromJson(RootObject->GetObjectField(JSON_SECTION_SETTINGS));
-	Project.ImportFromJson(RootObject->GetObjectField(JSON_SECTION_PROJECT));
-	Languages.ImportFromJson(RootObject);
-	PackageDefs.ImportFromJson(Archive, &RootObject->GetArrayField(JSON_SECTION_PACKAGES), Settings);
 
-	TSharedPtr<FJsonObject> HierarchyObject;
-	if (
-		Archive.FetchJson(
-			RootObject,
-			JSON_SECTION_HIERARCHY,
-			Settings.HierarchyHash,
-			HierarchyObject))
+	if (Settings.set_IncludedNodes.Contains(TEXT("Project")))
+		Project.ImportFromJson(RootObject->GetObjectField(JSON_SECTION_PROJECT), Settings);
+	
+	Languages.ImportFromJson(RootObject);
+
+	if (Settings.set_IncludedNodes.Contains(TEXT("Packages")))
+		PackageDefs.ImportFromJson(Archive, &RootObject->GetArrayField(JSON_SECTION_PACKAGES), Settings);
+
+	if (Settings.set_IncludedNodes.Contains(TEXT("Hierarchy")))
 	{
-		Hierarchy.ImportFromJson(this, HierarchyObject);
+		TSharedPtr<FJsonObject> HierarchyObject;
+		if (
+			Archive.FetchJson(
+				RootObject,
+				JSON_SECTION_HIERARCHY,
+				Settings.HierarchyHash,
+				HierarchyObject))
+		{
+			Hierarchy.ImportFromJson(this, HierarchyObject);
+		}
 	}
 
 	TSharedPtr<FJsonObject> UserMethodsObject;
@@ -490,7 +523,7 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	bool bNeedsCodeGeneration = false;
 
 	ParentChildrenCache.Empty();
-	
+
 	if (TSharedPtr<FJsonObject> GvObject;
 		Archive.FetchJson(
 			RootObject,
@@ -502,7 +535,7 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		Settings.SetObjectDefinitionsNeedRebuild();
 		bNeedsCodeGeneration = true;
 	}
-	
+
 	const TSharedPtr<FJsonObject> ObjectDefs = RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS);
 	if (TSharedPtr<FJsonObject> ObjTypes;
 		Archive.FetchJson(
@@ -527,7 +560,6 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		Settings.SetObjectDefinitionsNeedRebuild();
 		bNeedsCodeGeneration = true;
 	}
-
 	
 	if (Settings.DidScriptFragmentsChange() && this->GetSettings().set_UseScriptSupport)
 	{

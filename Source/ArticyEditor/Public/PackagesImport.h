@@ -93,9 +93,19 @@ public:
 	FString GetFolder() const;
 	FString GetFolderName() const;
 	const FString GetName() const;
+	FArticyId GetId() const;
+	bool GetIsIncluded() const;
+
+	bool operator==(const FArticyPackageDef& Other) const
+	{
+		return Id == Other.Id;
+	}
 
 private:
 
+	UPROPERTY(VisibleAnywhere, Category = "Package")
+	FArticyId Id;
+	
 	UPROPERTY(VisibleAnywhere, Category = "Package")
 	FString Name;
 	UPROPERTY(VisibleAnywhere, Category = "Package")
@@ -108,6 +118,14 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Package")
 	TMap<FString, FArticyTexts> Texts;
+
+	UPROPERTY(VisibleAnywhere, Category = "Package")
+	FString PackageObjectsHash;
+
+	UPROPERTY(VisibleAnywhere, Category = "Package")
+	FString PackageTextsHash;
+
+	bool IsIncluded = false;
 };
 
 /** Contains information about all imported packages. */
