@@ -150,6 +150,7 @@ void FArticyPackageDef::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	JSON_TRY_STRING(JsonPackage, Name);
 	JSON_TRY_STRING(JsonPackage, Description);
 	JSON_TRY_BOOL(JsonPackage, IsDefaultPackage);
+	JSON_TRY_STRING(JsonPackage, ScriptFragmentHash);
 
 	TSharedPtr<FJsonObject> Files;
 	JSON_TRY_OBJECT(JsonPackage, Files, {
@@ -286,11 +287,14 @@ void FArticyPackageDefs::ImportFromJson(
 	if(!Json)
 		return;
 
+	TSet<FString> OldPackageScriptHashes;
 	TArray<FArticyPackageDef> PackagesToRemove;
 
 	// Iterate over existing packages
 	for (auto& ExistingPackage : Packages)
 	{
+		OldPackageScriptHashes.Add(ExistingPackage.GetScriptFragmentHash());
+		
 		bool bExistingPackageFound = false;
 
 		// Iterate over new package list
@@ -340,7 +344,7 @@ void FArticyPackageDefs::ImportFromJson(
 
 		FArticyPackageDef package;
 		package.ImportFromJson(Archive, obj);
-
+		
 		bool bExistingPackageFound = false;
 
 		// Check if package already exists in the Packages array
@@ -360,7 +364,27 @@ void FArticyPackageDefs::ImportFromJson(
 		}
 	}
 
-	// TODO: Do checks on packages to make sure this is necessary
+	// Check if set of hashes are the same
+	if (OldPackageScriptHashes.Num() == Packages.Num())
+	{
+		bool bScriptFragmentsChanged = false;
+		
+		for (auto& Package : Packages)
+		{
+			if (!OldPackageScriptHashes.Contains(Package.GetScriptFragmentHash()))
+			{
+				bScriptFragmentsChanged = true;
+				break;
+			}
+		}
+
+		if (!bScriptFragmentsChanged)
+		{
+			// Skip rebuilding script fragments - they are the same
+			return;
+		}
+	}
+	
 	Settings.SetScriptFragmentsRebuilt();
 }
 
@@ -528,4 +552,9 @@ TSet<FString> FArticyPackageDefs::GetPackageNames() const
 TArray<FArticyPackageDef> FArticyPackageDefs::GetPackages() const
 {
 	return Packages;
+}
+
+FString FArticyPackageDef::GetScriptFragmentHash() const
+{
+	return ScriptFragmentHash;
 }

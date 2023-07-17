@@ -95,6 +95,7 @@ public:
 	const FString GetName() const;
 	FArticyId GetId() const;
 	bool GetIsIncluded() const;
+	FString GetScriptFragmentHash() const;
 
 	bool operator==(const FArticyPackageDef& Other) const
 	{
@@ -124,6 +125,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Package")
 	FString PackageTextsHash;
+
+	UPROPERTY(VisibleAnywhere, Category = "Package")
+	FString ScriptFragmentHash;
 
 	bool IsIncluded = false;
 };
