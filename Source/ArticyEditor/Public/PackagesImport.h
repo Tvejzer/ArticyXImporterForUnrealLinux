@@ -137,11 +137,13 @@ struct FArticyPackageDefs
 public:
 	
 	void ImportFromJson(const UArticyArchiveReader& Archive, const TArray<TSharedPtr<FJsonValue>>* Json, FADISettings& Settings);
+	bool ValidateImport(const UArticyArchiveReader& Archive, const TArray<TSharedPtr<FJsonValue>>* Json);
 	void GatherScripts(UArticyImportData* Data) const;
 	void GenerateAssets(UArticyImportData* Data) const;//MM_CHANGE
-	TMap<FString, FArticyTexts> GetTexts(const FString& PackageName) const;
+	static TMap<FString, FArticyTexts> GetTexts(const FArticyPackageDef& Package);
 
 	TSet<FString> GetPackageNames() const;
+	TArray<FArticyPackageDef> GetPackages() const;
 private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Packages")

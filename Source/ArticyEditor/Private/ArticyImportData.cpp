@@ -484,6 +484,10 @@ void UArticyImportData::PostImport()
 
 void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject> RootObject)
 {
+	// Abort if we will have broken packages
+	if (!PackageDefs.ValidateImport(Archive, &RootObject->GetArrayField(JSON_SECTION_PACKAGES)))
+		return;
+	
 	// import the main sections
 	Settings.ImportFromJson(RootObject->GetObjectField(JSON_SECTION_SETTINGS));
 
@@ -549,6 +553,7 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		bNeedsCodeGeneration = true;
 	}
 
+	const FString OldObjectDefintionsTextHash = Settings.ObjectDefinitionsTextHash;
 	if (TSharedPtr<FJsonObject> ObjTexts;
 		Archive.FetchJson(
 			RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS),
@@ -598,22 +603,32 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	}
 
 	// Create string tables
-	// TODO: Make sure it's necessary
+	if (!OldObjectDefintionsTextHash.Equals(Settings.ObjectDefinitionsTextHash))
+	{
+		for (const auto language : Languages.Languages)
+		{
+			StringTableGenerator(TEXT("ARTICY"), language.Key, [&](StringTableGenerator* CsvOutput)
+			{
+				// Handle object defs
+				for(const auto Text : GetObjectDefs().GetTexts())
+				{
+					CsvOutput->Line(Text.Key, Text.Value.Content[TEXT("")].Text);
+				}
+			});
+		}
+	}
+
 	for (const auto language : Languages.Languages)
 	{
-		StringTableGenerator(TEXT("ARTICY"), language.Key, [&](StringTableGenerator* CsvOutput)
-		{
-			// Handle object defs
-			for(const auto Text : GetObjectDefs().GetTexts())
-			{
-				CsvOutput->Line(Text.Key, Text.Value.Content[TEXT("")].Text);
-			}
-		});
-
 		// Handle packages
-		for(const auto Package : GetPackageDefs().GetPackageNames())
+		for(const auto& Package : GetPackageDefs().GetPackages())
 		{
-			StringTableGenerator(Package.Replace(TEXT(" "), TEXT("_")), language.Key, [&](StringTableGenerator* CsvOutput)
+			if (!Package.GetIsIncluded())
+				continue;
+			
+			const FString PackageName = Package.GetName();
+			StringTableGenerator(PackageName.Replace(TEXT(" "), TEXT("_")),language.Key,
+				[&](StringTableGenerator* CsvOutput)
 			{
 				// Handle object defs
 				for(const auto Text : GetPackageDefs().GetTexts(Package))

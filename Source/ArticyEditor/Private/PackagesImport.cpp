@@ -313,6 +313,7 @@ void FArticyPackageDefs::ImportFromJson(
 				{
 					ExistingPackage = package;
 				}
+
 				break;
 			}
 		}
@@ -363,6 +364,93 @@ void FArticyPackageDefs::ImportFromJson(
 	Settings.SetScriptFragmentsRebuilt();
 }
 
+bool FArticyPackageDefs::ValidateImport(
+	const UArticyArchiveReader& Archive,
+	const TArray<TSharedPtr<FJsonValue>>* Json)
+{
+	if(!Json)
+		return false;
+
+	// Iterate over existing packages
+	for (auto& ExistingPackage : Packages)
+	{
+		// Old package has data
+		if (ExistingPackage.GetIsIncluded())
+			continue;
+
+		bool bPackageDataFound = false;
+
+		// Iterate over new package list
+		for (const auto pack : *Json)
+		{
+			const auto obj = pack->AsObject();
+			if (!obj.IsValid())
+				continue;
+
+			FArticyPackageDef package;
+			package.ImportFromJson(Archive, obj);
+
+			// If package with the same Id is found
+			if (ExistingPackage.GetId() == package.GetId())
+			{
+				// If IsIncluded is set on the new package, we are safe to continue
+				if (package.GetIsIncluded())
+				{
+					bPackageDataFound = true;
+				}
+
+				break;
+			}
+		}
+
+		if (!bPackageDataFound)
+		{
+			UE_LOG(LogArticyEditor, Error, TEXT("No data for package %s"), *ExistingPackage.GetName());
+			return false;
+		}
+	}
+
+	// Iterate over new package list
+	for (const auto pack : *Json)
+	{
+		const auto obj = pack->AsObject();
+		if (!obj.IsValid())
+			continue;
+
+		FArticyPackageDef package;
+		package.ImportFromJson(Archive, obj);
+
+		// New package has data
+		if (package.GetIsIncluded())
+			continue;
+
+		bool bPackageDataFound = false;
+		
+		// Check if package already exists in the Packages array
+		for (const auto& ExistingPackage : Packages)
+		{
+			if (ExistingPackage.GetId() == package.GetId())
+			{
+				// Old package has data
+				if (ExistingPackage.GetIsIncluded())
+				{
+					bPackageDataFound = true;
+				}
+				break;
+			}
+		}
+
+		if (!bPackageDataFound)
+		{
+			UE_LOG(LogArticyEditor, Error, TEXT("No data for package %s"), *package.GetName());
+			return false;
+		}
+	}
+
+	// All checks passed - safe to import
+	return true;
+}
+
 void FArticyPackageDefs::GatherScripts(UArticyImportData* Data) const
 {
 	for(const auto& pack : Packages)
@@ -387,18 +475,9 @@ TMap<FString, FArticyTexts> FArticyPackageDef::GetTexts() const
 	return Texts;
 }
 
-TMap<FString, FArticyTexts> FArticyPackageDefs::GetTexts(const FString& PackageName) const
+TMap<FString, FArticyTexts> FArticyPackageDefs::GetTexts(const FArticyPackageDef& Package)
 {
-	// TODO: This is inefficient - fix it
-	for(const auto& pack : Packages)
-	{
-		if (pack.GetName().Equals(PackageName))
-		{
-			return pack.GetTexts();
-		}
-	}
-
-	return TMap<FString, FArticyTexts>();
+	return Package.GetTexts();
 }
 
 void FArticyPackageDefs::GenerateAssets(UArticyImportData* Data) const
@@ -444,4 +523,9 @@ TSet<FString> FArticyPackageDefs::GetPackageNames() const
 	}
 
 	return outArray;
+}
+
+TArray<FArticyPackageDef> FArticyPackageDefs::GetPackages() const
+{
+	return Packages;
 }
