@@ -73,9 +73,9 @@ protected:
 	bool set_Localization = false;
 
 private:
-	bool bObjectDefsOrGVsChanged = true;
+	bool bObjectDefsOrGVsChanged = false;
 
-	bool bScriptFragmentsChanged = true;
+	bool bScriptFragmentsChanged = false;
 };
 
 /**

@@ -93,6 +93,8 @@ public:
 	FString GetFolder() const;
 	FString GetFolderName() const;
 	const FString GetName() const;
+	const FString GetPreviousName() const;
+	void SetName(const FString& NewName);
 	FArticyId GetId() const;
 	bool GetIsIncluded() const;
 	FString GetScriptFragmentHash() const;
@@ -130,6 +132,7 @@ private:
 	FString ScriptFragmentHash;
 
 	bool IsIncluded = false;
+	FString PreviousName = TEXT("");
 };
 
 /** Contains information about all imported packages. */

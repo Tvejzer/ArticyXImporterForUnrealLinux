@@ -14,6 +14,8 @@
 #include "Misc/MessageDialog.h"
 #endif
 #include "ArticyArchiveReader.h"
+#include "ISourceControlModule.h"
+#include "SourceControlHelpers.h"
 #include "StringTableGenerator.h"
 #include "BuildToolParser/BuildToolParser.h"
 #include "Serialization/JsonSerializer.h"
@@ -36,6 +38,7 @@ void FADISettings::ImportFromJson(TSharedPtr<FJsonObject> Json)
 		// Different rule set, start over
 		GlobalVariablesHash.Reset();
 		ObjectDefinitionsHash.Reset();
+		ObjectDefinitionsTextHash.Reset();
 		ScriptFragmentsHash.Reset();
 	}
 	
@@ -60,6 +63,7 @@ void FArticyProjectDef::ImportFromJson(const TSharedPtr<FJsonObject> Json, FADIS
 		// Treat as different export
 		Settings.GlobalVariablesHash.Reset();
 		Settings.ObjectDefinitionsHash.Reset();
+		Settings.ObjectDefinitionsTextHash.Reset();
 		Settings.ScriptFragmentsHash.Reset();
 	}
 
@@ -623,11 +627,57 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		// Handle packages
 		for(const auto& Package : GetPackageDefs().GetPackages())
 		{
+			const FString PackageName = Package.GetName();
+			const FString StringTableFileName = PackageName.Replace(TEXT(" "), TEXT("_"));
+			if (!Package.GetName().Equals(Package.GetPreviousName()))
+			{
+				// Needs rename
+				const FString OldStringTableFileName = Package.GetPreviousName().Replace(TEXT(" "), TEXT("_"));
+				IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+				ISourceControlModule& SCModule = ISourceControlModule::Get();
+
+				bool bCheckOutEnabled = false;
+				if(SCModule.IsEnabled())
+				{
+					bCheckOutEnabled = ISourceControlModule::Get().GetProvider().UsesCheckout();
+				}
+
+				// Work out the old and new file paths
+				FString OldPath, NewPath;
+				const FString OldFilePath = TEXT("ArticyContent/Generated") / OldStringTableFileName;
+				const FString NewFilePath = TEXT("ArticyContent/Generated") / StringTableFileName;
+				if (language.Key.IsEmpty())
+				{
+					OldPath = FPaths::ProjectContentDir() / OldFilePath;
+					NewPath = FPaths::ProjectContentDir() / NewFilePath;
+				} else {
+					OldPath = FPaths::ProjectContentDir() / TEXT("L10N") / language.Key / OldFilePath;
+					NewPath = FPaths::ProjectContentDir() / TEXT("L10N") / language.Key / NewFilePath;
+				}
+				OldPath += TEXT(".csv");
+				NewPath += TEXT(".csv");
+				
+				// Check out and rename
+				if(PlatformFile.FileExists(*OldPath))
+				{
+					if (bCheckOutEnabled)
+						USourceControlHelpers::CheckOutFile(*OldPath);
+
+					// Rename the file
+					PlatformFile.MoveFile(*NewPath, *OldPath);
+					
+					if (bCheckOutEnabled)
+					{
+						USourceControlHelpers::MarkFileForAdd(*NewPath);
+						USourceControlHelpers::MarkFileForDelete(*OldPath);
+					}
+				}
+			}
+			
 			if (!Package.GetIsIncluded())
 				continue;
 			
-			const FString PackageName = Package.GetName();
-			StringTableGenerator(PackageName.Replace(TEXT(" "), TEXT("_")),language.Key,
+			StringTableGenerator(StringTableFileName, language.Key,
 				[&](StringTableGenerator* CsvOutput)
 			{
 				// Handle object defs

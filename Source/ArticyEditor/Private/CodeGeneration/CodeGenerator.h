@@ -35,7 +35,9 @@ public:
 
 	/** Delete a file inside the source folder (empty Filename deletes the whole folder). */
 	static bool DeleteGeneratedCode(const FString &Filename = "");
-	static bool DeleteGeneratedAssets();
+	static bool DeleteGeneratedAssets(const FArticyPackageDefs& PackageDefs);
+
+	static bool RenameGeneratedAssets(const FArticyPackageDefs& PackageDefs);
 
 private:
 

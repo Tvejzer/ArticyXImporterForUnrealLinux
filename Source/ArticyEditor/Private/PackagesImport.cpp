@@ -267,6 +267,23 @@ const FString FArticyPackageDef::GetName() const
 	return Name;
 }
 
+const FString FArticyPackageDef::GetPreviousName() const
+{
+	if (PreviousName.Len() == 0)
+	{
+		return Name;
+	}
+	
+	return PreviousName;
+}
+
+void FArticyPackageDef::SetName(const FString& NewName)
+{
+	PreviousName = Name;
+	Name = NewName;
+}
+
+
 FArticyId FArticyPackageDef::GetId() const
 {
 	return Id;
@@ -312,10 +329,22 @@ void FArticyPackageDefs::ImportFromJson(
 			{
 				bExistingPackageFound = true;
 
+				const FString& OldName = ExistingPackage.GetName();
+				const FString& NewName = package.GetName();
+				
 				// If IsIncluded is set on the new package, replace the existing package
 				if (package.GetIsIncluded())
 				{
 					ExistingPackage = package;
+
+					// Useful if we ever decide to rename included packages 
+					ExistingPackage.SetName(OldName);
+				}
+				
+				if (!NewName.Equals(OldName))
+				{
+					// Name has changed
+					ExistingPackage.SetName(NewName);					
 				}
 
 				break;
@@ -385,7 +414,7 @@ void FArticyPackageDefs::ImportFromJson(
 		}
 	}
 	
-	Settings.SetScriptFragmentsRebuilt();
+	Settings.SetScriptFragmentsNeedRebuild();
 }
 
 bool FArticyPackageDefs::ValidateImport(
