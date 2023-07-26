@@ -24,6 +24,7 @@ void FArticyEditorFunctionLibrary::ForceCompleteReimport(UArticyImportData* Impo
 
 	ImportData->Settings.GlobalVariablesHash.Reset();
 	ImportData->Settings.ObjectDefinitionsHash.Reset();
+	ImportData->Settings.ObjectDefinitionsTextHash.Reset();
 	ImportData->Settings.ScriptFragmentsHash.Reset();
 	ReimportChanges(ImportData);
 }
