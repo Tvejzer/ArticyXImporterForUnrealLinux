@@ -8,6 +8,7 @@
 #include "UObject/TextProperty.h"
 #include "Engine/Engine.h"
 #include "Internationalization/StringTable.h"
+#include "ArticyTextExtension.h"
 #include "ArticyObjectWithText.generated.h"
 
 UINTERFACE(MinimalAPI, BlueprintType, meta=(CannotImplementInterfaceInBlueprint))
@@ -30,7 +31,11 @@ public:
 		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
 
 		// Look up entry in specified string table
-		const TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
+		TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
+		if (!TableName.IsSet())
+		{
+			TableName = TEXT("ARTICY");
+		}
 		const FText SourceString = FText::FromStringTable(
 			FName(TableName.GetValue()),
 			Key.ToString(),
@@ -38,11 +43,11 @@ public:
 		const FString Decoded = SourceString.ToString();
 		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
 		{
-			return SourceString;
+			return ResolveText(SourceString);
 		}
 
 		// By default, return the key
-		return Key;
+		return ResolveText(Key);
 	}
 
 	virtual FText GetText() const
@@ -56,5 +61,11 @@ public:
 	virtual FText& SetText(UPARAM(ref) const FText& Text)
 	{
 		return GetText() = Text;
+	}
+
+protected:
+	virtual FText ResolveText(FText SourceText) const
+	{
+		return UArticyTextExtension::Get()->Resolve(SourceText);
 	}
 };
