@@ -12,6 +12,7 @@
 #include "ArticyFlowClasses.h"
 #include "ArticyScriptFragment.h"
 #include "ArticyEntity.h"
+#include "JsonObjectConverter.h"
 #include "UObject/ConstructorHelpers.h"
 
 //---------------------------------------------------------------------------//
@@ -29,7 +30,13 @@ void FArticyTemplateDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonObject
 		FArticyTemplateFeatureDef def;
 		def.ImportFromJson(item->AsObject(), Data);
 		Features.Add(def);
+		ArticyType.Features.Add(def.GetDisplayName());
 	});
+
+	ArticyType.HasTemplate = true;
+	ArticyType.TechnicalName = TechnicalName;
+	ArticyType.LocaKey_DisplayName = DisplayName;
+	ArticyType.DisplayName = FArticyType::LocalizeString(DisplayName);
 }
 
 void FArticyTemplateDef::GenerateFeaturesDefs(CodeFileGenerator& header, const UArticyImportData* Data) const
@@ -62,6 +69,8 @@ void FArticyTemplateDef::InitializeModel(UArticyPrimitive* Model, const FString&
 		if(Values->TryGetObjectField(feat.GetTechnicalName(), featureJson))
 			feat.InitializeModel(Model, Path, *featureJson, Data, PackageName);
 	}
+
+	Model->ArticyType.MergeChild(ArticyType);
 }
 
 //---------------------------------------------------------------------------//
@@ -81,16 +90,29 @@ void FArticyObjectDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonObjDef, 
 		FArticyPropertyDef prop;
 		prop.ImportFromJson(item->AsObject(), Data);
 		Properties.Add(prop);
+
+		FArticyPropertyInfo info;
+		FString name = prop.GetPropetyName().ToString();
+		info.LocaKey_DisplayName = name;
+		info.DisplayName = FArticyType::LocalizeString(name);
+		ArticyType.Properties.Add(info);
 	});
 
 	JSON_TRY_OBJECT(JsonObjDef, Values,
 	{
 		DefType = EObjectDefType::Enum;
+		ArticyType.IsEnum = true;
 		for(const auto json : (*obj)->Values)
 		{
 			FArticyEnumValue val;
 			val.ImportFromJson(json);
 			Values.Add(val);
+
+			FArticyEnumValueInfo info;
+			info.LocaKey_DisplayName = val.Name;
+			info.DisplayName = FArticyType::LocalizeString(val.Name);
+			info.Value = val.Value;
+			ArticyType.EnumValues.Add(info);
 		}
 	});
 
@@ -98,7 +120,11 @@ void FArticyObjectDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonObjDef, 
 	{
 		DefType = EObjectDefType::Template;
 		Template.ImportFromJson(*obj, Data);
+		ArticyType.HasTemplate = true;
+		ArticyType.MergeParent(Template.ArticyType);
 	});
+
+	ArticyType.CPPType = GetCppType(Data, false);
 }
 
 bool FArticyObjectDef::IsBaseProperty(FName Property, const UArticyImportData* Data) const
@@ -157,8 +183,73 @@ void FArticyObjectDef::GenerateCode(CodeFileGenerator& header, const UArticyImpo
 
 			if(DefType == EObjectDefType::Template)
 				Template.GenerateProperties(header, Data);
+
+			/* FString TypeString;
+			FJsonObjectConverter::UStructToJsonObjectString(ArticyType, TypeString);
+			const FString EscapedTypeString = EscapeString(TypeString);
+
+			constexpr int32 MaxStringLength = 1000;
+			const TCHAR* OriginalString = *EscapedTypeString;
+			int32 OriginalStringLength = FCString::Strlen(OriginalString);
+
+			TArray<FString> SplitStrings;
+			for (int32 Index = 0; Index < OriginalStringLength; Index += MaxStringLength)
+			{
+				FString Substring = OriginalString + Index;
+				Substring.LeftInline(FMath::Min(MaxStringLength, OriginalStringLength - Index));
+				SplitStrings.Add(Substring);
+			}
+
+			FString VariableArray;
+			for (const FString& SplitString : SplitStrings)
+			{
+				VariableArray += FString::Printf(TEXT("TEXT(\"%s\"), "), *SplitString);
+			}
+
+			const FString CompleteVariable = FString::Printf(TEXT("const TCHAR* ArticyTypeInformation[%d] = { %s nullptr };"), SplitStrings.Num() + 1, *VariableArray);
+			header.Line(CompleteVariable); */
 		});
 	}
+}
+
+FString FArticyObjectDef::EscapeString(const FString& InString)
+{
+	FString EscapedString;
+	for (int32 Index = 0; Index < InString.Len(); ++Index)
+	{
+		switch (const TCHAR Char = InString[Index])
+		{
+		case TEXT('\"'): EscapedString += TEXT("\\\""); break;
+		case TEXT('\\'): EscapedString += TEXT("\\\\"); break;
+		case TEXT('\b'):
+		case TEXT('\f'):
+		case TEXT('\n'):
+		case TEXT('\r'):
+		case TEXT('\t'): EscapedString.AppendChar(TEXT(' ')); break;
+			default: EscapedString.AppendChar(Char); break;
+		}
+	}
+	return EscapedString;
+}
+
+FString FArticyObjectDef::RemoveConsecutiveDuplicates(const FString& InputString)
+{
+	FString CleanedString = InputString;
+	int32 Index = 0;
+
+	while (Index < CleanedString.Len() - 1)
+	{
+		if (CleanedString[Index] == TEXT(' ') && CleanedString[Index + 1] == TEXT(' '))
+		{
+			CleanedString.RemoveAt(Index, 1, true);
+		}
+		else
+		{
+			Index++;
+		}
+	}
+
+	return CleanedString;
 }
 
 void FArticyObjectDef::GatherScripts(const FArticyModelDef& Vals, UArticyImportData* Data) const
@@ -228,6 +319,8 @@ void FArticyObjectDef::InitializeModel(
 		Template.InitializeModel(Model, nameAndId, featuresJson, Data, PackageName);
 	else
 		ensure(Template.GetDisplayName().IsEmpty());
+
+	Model->ArticyType.MergeChild(ArticyType);
 }
 
 FString FArticyObjectDef::GetCppType(const UArticyImportData* Data, const bool bForProperty) const
@@ -343,6 +436,10 @@ void FArticyPropertyDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonProper
 		DisplayName = Property.ToString();
 
 	JSON_TRY_STRING(JsonProperty, Tooltip);
+
+	ArticyType.LocaKey_DisplayName = DisplayName;
+	ArticyType.DisplayName = FArticyType::LocalizeString(DisplayName);
+	ArticyType.CPPType = GetCppType(Data);
 }
 
 void FArticyPropertyDef::GenerateCode(CodeFileGenerator& header, const UArticyImportData* Data) const
@@ -419,6 +516,8 @@ void FArticyPropertyDef::InitializeModel(
 		return;
 
 	FArticyObjectDefinitions::SetProp(ItemType.IsNone() ? Type : ItemType, GetPropetyName(), Model, Path + "." + Property.ToString(), jsonValue, PackageName);
+
+	Model->ArticyType.MergeParent(ArticyType);
 }
 
 FString FArticyPropertyDef::GetCppType(const UArticyImportData* Data) const
@@ -489,7 +588,18 @@ void FArticyTemplateFeatureDef::ImportFromJson(const TSharedPtr<FJsonObject> Jso
 		FArticyPropertyDef prop;
 		prop.ImportFromJson(item->AsObject(), Data, &Constraints);
 		Properties.Add(prop);
+
+		FArticyPropertyInfo info;
+		FString name = prop.GetPropetyName().ToString();
+		info.LocaKey_DisplayName = name;
+		info.DisplayName = FArticyType::LocalizeString(name);
+		ArticyType.Properties.Add(info);
 	});
+
+	ArticyType.TechnicalName = TechnicalName;
+	ArticyType.LocaKey_DisplayName = DisplayName;
+	ArticyType.DisplayName = FArticyType::LocalizeString(DisplayName);
+	ArticyType.CPPType = GetCppType(Data, false);
 }
 
 void FArticyTemplateFeatureDef::GenerateDefCode(CodeFileGenerator& header, const UArticyImportData* Data) const
@@ -536,6 +646,8 @@ void FArticyTemplateFeatureDef::InitializeModel(
 	const auto path = Path + "." + *TechnicalName;
 	for(const auto& prop : Properties)
 		prop.InitializeModel(feature, path, Json, Data, PackageName);
+
+	Model->ArticyType.MergeChild(ArticyType);
 }
 
 UClass* FArticyTemplateFeatureDef::GetUClass(const UArticyImportData* Data) const

@@ -70,6 +70,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category="ObjectProperty")
 	FString Tooltip = "";
 
+	UPROPERTY(VisibleAnywhere, Category="ObjectProperty")
+	FArticyType ArticyType;
+
 	friend class UArticyImportData;
 };
 
@@ -126,6 +129,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category="TemplateFeature")
 	TArray<FArticyTemplateConstraint> Constraints;
+
+	UPROPERTY(VisibleAnywhere, Category="TemplateFeature")
+	FArticyType ArticyType;
 };
 
 USTRUCT()
@@ -150,6 +156,9 @@ public:
 	FString GetDisplayName() const { return DisplayName; }
 	const TArray<FArticyTemplateFeatureDef>& GetFeatures() const { return Features; }
 
+	UPROPERTY(VisibleAnywhere, Category="Template")
+	FArticyType ArticyType;
+
 private:
 
 	UPROPERTY(VisibleAnywhere, Category="Template")
@@ -159,6 +168,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category="Template")
 	TArray<FArticyTemplateFeatureDef> Features;
+	
 };
 
 //---------------------------------------------------------------------------//
@@ -183,6 +193,8 @@ public:
 	/** Returns true if the given property is already defined in the base class. */
 	bool IsBaseProperty(FName Property, const UArticyImportData* Data) const;
 	void GenerateCode(CodeFileGenerator& header, const UArticyImportData* Data) const;
+	static FString EscapeString(const FString& InString);
+	static FString RemoveConsecutiveDuplicates(const FString& InputString);
 
 	/** Find all script fragments, add them to the UArticyImportData, and replace them with an id. */
 	void GatherScripts(const FArticyModelDef& Values, UArticyImportData* Data) const;
@@ -196,6 +208,9 @@ public:
 	FString GetCppBaseClasses(const UArticyImportData* Data) const;
 	const FName& GetOriginalType() const { return Type; }
 	const TArray<FArticyTemplateFeatureDef>& GetFeatures() const;
+
+	UPROPERTY(VisibleAnywhere, Category="ObjectDef")
+	FArticyType ArticyType;
 
 private:
 

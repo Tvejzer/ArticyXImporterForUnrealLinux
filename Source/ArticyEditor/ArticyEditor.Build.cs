@@ -32,6 +32,8 @@ public class ArticyEditor : ModuleRules
 				"Core",
 				"ArticyRuntime",
 				"EditorWidgets",
+				"Json",
+				"JsonUtilities"
 				//"ClassViewer"
 				// ... add other public dependencies that you statically link with here ...
 			}

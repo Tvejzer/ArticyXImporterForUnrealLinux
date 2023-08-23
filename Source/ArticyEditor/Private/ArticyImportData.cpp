@@ -485,6 +485,7 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 			UserMethodsObject))
 	{
 		UserMethods.ImportFromJson(&UserMethodsObject->GetArrayField(JSON_SECTION_SCRIPTMEETHODS));
+		Settings.SetScriptFragmentsNeedRebuild();
 	}
 
 	bool bNeedsCodeGeneration = false;
@@ -528,6 +529,10 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		bNeedsCodeGeneration = true;
 	}
 
+	if (Settings.ScriptFragmentsHash.IsEmpty())
+	{
+		Settings.SetScriptFragmentsNeedRebuild();
+	}
 	
 	if (Settings.DidScriptFragmentsChange() && this->GetSettings().set_UseScriptSupport)
 	{
