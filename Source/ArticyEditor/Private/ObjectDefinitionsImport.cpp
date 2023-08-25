@@ -183,31 +183,6 @@ void FArticyObjectDef::GenerateCode(CodeFileGenerator& header, const UArticyImpo
 
 			if(DefType == EObjectDefType::Template)
 				Template.GenerateProperties(header, Data);
-
-			/* FString TypeString;
-			FJsonObjectConverter::UStructToJsonObjectString(ArticyType, TypeString);
-			const FString EscapedTypeString = EscapeString(TypeString);
-
-			constexpr int32 MaxStringLength = 1000;
-			const TCHAR* OriginalString = *EscapedTypeString;
-			int32 OriginalStringLength = FCString::Strlen(OriginalString);
-
-			TArray<FString> SplitStrings;
-			for (int32 Index = 0; Index < OriginalStringLength; Index += MaxStringLength)
-			{
-				FString Substring = OriginalString + Index;
-				Substring.LeftInline(FMath::Min(MaxStringLength, OriginalStringLength - Index));
-				SplitStrings.Add(Substring);
-			}
-
-			FString VariableArray;
-			for (const FString& SplitString : SplitStrings)
-			{
-				VariableArray += FString::Printf(TEXT("TEXT(\"%s\"), "), *SplitString);
-			}
-
-			const FString CompleteVariable = FString::Printf(TEXT("const TCHAR* ArticyTypeInformation[%d] = { %s nullptr };"), SplitStrings.Num() + 1, *VariableArray);
-			header.Line(CompleteVariable); */
 		});
 	}
 }
