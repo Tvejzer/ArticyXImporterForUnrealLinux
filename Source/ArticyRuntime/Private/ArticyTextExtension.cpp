@@ -75,9 +75,11 @@ FString UArticyTextExtension::GetSource(const FString& SourceName) const
 		}
 	}
 
+	// Process types
 	if (SourceParts[0].StartsWith(TEXT("$Type.")))
 	{
-		UArticyTypeSystem* TypeSystem = UArticyTypeSystem::Get();
+		const FString TypeName = SourceParts[0].Mid(6);
+		GetTypeProperty(TypeName, RemValue, Result, bSuccess);
 		
 		if (bSuccess)
 		{
@@ -95,15 +97,20 @@ FString UArticyTextExtension::GetSource(const FString& SourceName) const
 		return Result;
 	}
 
+	// Type for object
+	bool bRequestType = false;
+	if (RemValue.EndsWith(TEXT(".$Type")))
+	{
+		RemValue = RemValue.Left(RemValue.Len() - 6);
+		bRequestType = true;
+	}
+
 	// Process Objects & Script Properties
-	GetObjectProperty(SourceName, SourceParts[0], RemValue, Result, bSuccess);
+	GetObjectProperty(SourceName, SourceParts[0], RemValue, bRequestType, Result, bSuccess);
 	if (bSuccess)
 	{
 		return Result;
 	}
-
-	// Process Type Information
-	// TODO: Implement this feature
 	
 	return SourceName;
 }
@@ -212,7 +219,7 @@ void UArticyTextExtension::GetGlobalVariable(const FString& SourceName, FArticyG
 	}
 }
 
-void UArticyTextExtension::GetObjectProperty(const FString& SourceName, const FString& NameOrId, const FString& PropertyName, FString& OutString, bool& OutSuccess) const
+void UArticyTextExtension::GetObjectProperty(const FString& SourceName, const FString& NameOrId, const FString& PropertyName, const bool bRequestType, FString& OutString, bool& OutSuccess) const
 {
 	// Get the object
 	const auto DB = UArticyDatabase::Get(this);
@@ -236,6 +243,13 @@ void UArticyTextExtension::GetObjectProperty(const FString& SourceName, const FS
 	if (!Object)
 	{
 		OutSuccess = false;
+		return;
+	}
+
+	if (bRequestType)
+	{
+		OutString = Object->ArticyType.GetProperty(PropertyName).PropertyType;
+		OutSuccess = true;
 		return;
 	}
 
@@ -270,6 +284,34 @@ void UArticyTextExtension::GetObjectProperty(const FString& SourceName, const FS
 			OutSuccess = false;
 		}
 	}
+}
+
+void UArticyTextExtension::GetTypeProperty(const FString& TypeName, const FString& PropertyName, FString& OutString,
+	bool& OutSuccess)
+{
+	UArticyTypeSystem* TypeSystem = UArticyTypeSystem::Get();
+	FArticyType TypeData = TypeSystem->GetArticyType(TypeName);
+	FArticyPropertyInfo PropertyInfo{};
+	bool bFoundProperty = false;
+	
+	for (const auto& Property : TypeData.Properties)
+	{
+		if (Property.TechnicalName.Equals(PropertyName))
+		{
+			PropertyInfo = Property;
+			bFoundProperty = true;
+			break;
+		}
+	}
+
+	if (!bFoundProperty)
+	{
+		OutSuccess = false;
+		return;
+	}
+
+	OutString = PropertyInfo.PropertyType;
+	OutSuccess = true;
 }
 
 FString UArticyTextExtension::ExecuteMethod(const FText& Method, const TArray<FString>& Args) const

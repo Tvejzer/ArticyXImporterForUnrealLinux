@@ -18,6 +18,7 @@
 #include "ArticyEditorModule.h"
 #include "ArticyPluginSettings.h"
 #include "ArticyTypeGenerator.h"
+#include "AssetToolsModule.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Misc/FileHelper.h"
 #include "ObjectTools.h"
@@ -153,7 +154,7 @@ void CodeGenerator::Recompile(UArticyImportData* Data)
 	Compile(Data);
 }
 
-bool CodeGenerator::DeleteGeneratedAssets()
+bool CodeGenerator::DeleteGeneratedAssets(const FArticyPackageDefs& PackageDefs)
 {
 	FAssetRegistryModule& AssetRegistry = FModuleManager::Get().GetModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray<FAssetData> OutAssets;
@@ -172,8 +173,24 @@ bool CodeGenerator::DeleteGeneratedAssets()
 				InvalidAssets.Add(Data);
 				continue;
 			}
-			
-			ExistingAssets.Add(Asset);
+
+			bool ExcludeAsset = false;
+			if (const UArticyPackage* PackageAsset = Cast<UArticyPackage>(Asset))
+			{
+				for (const FArticyPackageDef& PackageDef : PackageDefs.GetPackages())
+				{
+					// Don't delete package assets that are not included in the import
+					if (!PackageDef.GetIsIncluded() && PackageAsset->Name.Equals(PackageDef.GetName()))
+					{
+						ExcludeAsset = true;
+					}
+				}
+			}
+
+			if (!ExcludeAsset)
+			{
+				ExistingAssets.Add(Asset);
+			}
 		}
 	}
 
@@ -189,6 +206,60 @@ bool CodeGenerator::DeleteGeneratedAssets()
 	}
 
 	// returns true if there is nothing to delete to not trigger the ensure
+	return true;
+}
+
+bool CodeGenerator::RenameGeneratedAssets(const FArticyPackageDefs& PackageDefs)
+{
+	const FAssetRegistryModule& AssetRegistry = FModuleManager::Get().GetModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	TArray<FAssetData> OutAssets;
+	AssetRegistry.Get().GetAssetsByPath(FName(*ArticyHelpers::GetArticyGeneratedFolder()), OutAssets, true, false);
+	
+	for(FAssetData Data : OutAssets)
+	{
+		if (Data.IsValid())
+		{
+			UObject* Asset = Data.GetAsset();
+			
+			// Skip invalid assets
+			if(!Asset)
+			{
+				continue;
+			}
+
+			if (UArticyPackage* PackageAsset = Cast<UArticyPackage>(Asset))
+			{
+				for (const FArticyPackageDef& PackageDef : PackageDefs.GetPackages())
+				{
+					// Skip included packages - we delete them anyway
+					if (PackageDef.GetIsIncluded())
+					{
+						continue;
+					}
+					
+					// Only check packages with name changes
+					if (PackageDef.GetName().Equals(PackageDef.GetPreviousName()))
+					{
+						continue;
+					}
+
+					// Rename the asset
+					FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+					TArray<FAssetRenameData> AssetsAndNames;
+					const FString OldName = PackageAsset->GetName();
+					const FString PackagePath = FPackageName::GetLongPackagePath(PackageAsset->GetOutermost()->GetName());
+					new(AssetsAndNames)FAssetRenameData(PackageAsset, PackagePath, PackageDef.GetName());
+					AssetToolsModule.Get().RenameAssets(AssetsAndNames);
+
+					FAssetRegistryModule::AssetRenamed(PackageAsset, PackagePath / OldName);
+					PackageAsset->MarkPackageDirty();
+					PackageAsset->GetOuter()->MarkPackageDirty();
+				}
+			}
+		}
+	}
+
+	// returns true if there are no failures
 	return true;
 }
 
@@ -304,7 +375,17 @@ void CodeGenerator::GenerateAssets(UArticyImportData* Data)
 		if (!ensure(ConstructorHelpersInternal::FindOrLoadClass(FullClassName, UArticyGlobalVariables::StaticClass())))
 		UE_LOG(LogArticyEditor, Error, TEXT("Could not find generated global variables class after compile!"));
 	}
-	if(!ensureAlwaysMsgf(DeleteGeneratedAssets(), 
+
+	if(!ensureAlwaysMsgf(RenameGeneratedAssets(Data->GetPackageDefs()),
+		TEXT("RenameGeneratedAssets() has failed. The Articy X Importer can not proceed without\n"
+		"being able to rename previously generated assets for packages with new names.\n"
+		"Please make sure the Generated folder in ArticyContent is editable.")))
+	{
+		// Failed to rename generated assets. We can't continue
+		return;
+	}
+	
+	if(!ensureAlwaysMsgf(DeleteGeneratedAssets(Data->GetPackageDefs()), 
 		TEXT("DeletedGeneratedAssets() has failed. The Articy X Importer can not proceed without\n"
 		"being able to delete the previously generated assets to replace them with new ones.\n"
 		"Please make sure the Generated folder in ArticyContent is editable.")))

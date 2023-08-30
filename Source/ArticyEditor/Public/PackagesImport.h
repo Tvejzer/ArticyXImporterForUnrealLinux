@@ -93,9 +93,22 @@ public:
 	FString GetFolder() const;
 	FString GetFolderName() const;
 	const FString GetName() const;
+	const FString GetPreviousName() const;
+	void SetName(const FString& NewName);
+	FArticyId GetId() const;
+	bool GetIsIncluded() const;
+	FString GetScriptFragmentHash() const;
+
+	bool operator==(const FArticyPackageDef& Other) const
+	{
+		return Id == Other.Id;
+	}
 
 private:
 
+	UPROPERTY(VisibleAnywhere, Category = "Package")
+	FArticyId Id;
+	
 	UPROPERTY(VisibleAnywhere, Category = "Package")
 	FString Name;
 	UPROPERTY(VisibleAnywhere, Category = "Package")
@@ -108,6 +121,18 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Package")
 	TMap<FString, FArticyTexts> Texts;
+
+	UPROPERTY(VisibleAnywhere, Category = "Package")
+	FString PackageObjectsHash;
+
+	UPROPERTY(VisibleAnywhere, Category = "Package")
+	FString PackageTextsHash;
+
+	UPROPERTY(VisibleAnywhere, Category = "Package")
+	FString ScriptFragmentHash;
+
+	bool IsIncluded = false;
+	FString PreviousName = TEXT("");
 };
 
 /** Contains information about all imported packages. */
@@ -119,11 +144,13 @@ struct FArticyPackageDefs
 public:
 	
 	void ImportFromJson(const UArticyArchiveReader& Archive, const TArray<TSharedPtr<FJsonValue>>* Json, FADISettings& Settings);
+	bool ValidateImport(const UArticyArchiveReader& Archive, const TArray<TSharedPtr<FJsonValue>>* Json);
 	void GatherScripts(UArticyImportData* Data) const;
 	void GenerateAssets(UArticyImportData* Data) const;//MM_CHANGE
-	TMap<FString, FArticyTexts> GetTexts(const FString& PackageName) const;
+	static TMap<FString, FArticyTexts> GetTexts(const FArticyPackageDef& Package);
 
 	TSet<FString> GetPackageNames() const;
+	TArray<FArticyPackageDef> GetPackages() const;
 private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Packages")

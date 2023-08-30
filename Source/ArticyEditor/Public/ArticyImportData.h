@@ -27,7 +27,13 @@ public:
 	/** If this is false, no ExpressoScripts class is generated, and script fragments are not evaluated/executed. */
 	UPROPERTY(VisibleAnywhere, Category="Settings")
 	bool set_UseScriptSupport = false;
-	
+
+	UPROPERTY(VisibleAnywhere, Category="Settings")
+	FString set_IncludedNodes = "";
+
+	UPROPERTY(VisibleAnywhere, Category="Settings")
+	FArticyId RuleSetId;
+
 	UPROPERTY(VisibleAnywhere, Category="Settings")
 	FString ExportVersion = "";
 
@@ -67,9 +73,9 @@ protected:
 	bool set_Localization = false;
 
 private:
-	bool bObjectDefsOrGVsChanged = true;
+	bool bObjectDefsOrGVsChanged = false;
 
-	bool bScriptFragmentsChanged = true;
+	bool bScriptFragmentsChanged = false;
 };
 
 /**
@@ -90,7 +96,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category="Project")
 	FString TechnicalName;
 
-	void ImportFromJson(const TSharedPtr<FJsonObject> JsonRoot);
+	void ImportFromJson(const TSharedPtr<FJsonObject> JsonRoot, FADISettings& Settings);
 };
 
 UENUM()
