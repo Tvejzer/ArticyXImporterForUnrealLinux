@@ -193,8 +193,6 @@ public:
 	/** Returns true if the given property is already defined in the base class. */
 	bool IsBaseProperty(FName Property, const UArticyImportData* Data) const;
 	void GenerateCode(CodeFileGenerator& header, const UArticyImportData* Data) const;
-	static FString EscapeString(const FString& InString);
-	static FString RemoveConsecutiveDuplicates(const FString& InputString);
 
 	/** Find all script fragments, add them to the UArticyImportData, and replace them with an id. */
 	void GatherScripts(const FArticyModelDef& Values, UArticyImportData* Data) const;

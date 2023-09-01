@@ -187,46 +187,6 @@ void FArticyObjectDef::GenerateCode(CodeFileGenerator& header, const UArticyImpo
 	}
 }
 
-FString FArticyObjectDef::EscapeString(const FString& InString)
-{
-	FString EscapedString;
-	for (int32 Index = 0; Index < InString.Len(); ++Index)
-	{
-		switch (const TCHAR Char = InString[Index])
-		{
-		case TEXT('\"'): EscapedString += TEXT("\\\""); break;
-		case TEXT('\\'): EscapedString += TEXT("\\\\"); break;
-		case TEXT('\b'):
-		case TEXT('\f'):
-		case TEXT('\n'):
-		case TEXT('\r'):
-		case TEXT('\t'): EscapedString.AppendChar(TEXT(' ')); break;
-			default: EscapedString.AppendChar(Char); break;
-		}
-	}
-	return EscapedString;
-}
-
-FString FArticyObjectDef::RemoveConsecutiveDuplicates(const FString& InputString)
-{
-	FString CleanedString = InputString;
-	int32 Index = 0;
-
-	while (Index < CleanedString.Len() - 1)
-	{
-		if (CleanedString[Index] == TEXT(' ') && CleanedString[Index + 1] == TEXT(' '))
-		{
-			CleanedString.RemoveAt(Index, 1, true);
-		}
-		else
-		{
-			Index++;
-		}
-	}
-
-	return CleanedString;
-}
-
 void FArticyObjectDef::GatherScripts(const FArticyModelDef& Vals, UArticyImportData* Data) const
 {
 	if(DefType == EObjectDefType::Enum)
