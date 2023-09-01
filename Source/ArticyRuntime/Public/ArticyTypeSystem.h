@@ -16,12 +16,6 @@ class ARTICYRUNTIME_API UArticyTypeSystem : public UObject
 
 public:
 	static UArticyTypeSystem* Get();
-
 	FArticyType GetArticyType(const FString& TypeName) const;
-
 	TMap<FString, FArticyType> Types;
-
-protected:
-	// static FString ConcatenateTCharStrings(const TCHAR* CharStrings[]);
 };
-
