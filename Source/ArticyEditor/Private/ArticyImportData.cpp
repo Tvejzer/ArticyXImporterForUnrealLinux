@@ -491,6 +491,9 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	// Abort if we will have broken packages
 	if (!PackageDefs.ValidateImport(Archive, &RootObject->GetArrayField(JSON_SECTION_PACKAGES)))
 		return;
+
+	// Record old script fragments hash
+	const FString& OldScriptFragmentsHash = Settings.ScriptFragmentsHash;
 	
 	// import the main sections
 	Settings.ImportFromJson(RootObject->GetObjectField(JSON_SECTION_SETTINGS));
@@ -571,7 +574,7 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		bNeedsCodeGeneration = true;
 	}
 
-	if (Settings.ScriptFragmentsHash.IsEmpty())
+	if (Settings.ScriptFragmentsHash.IsEmpty() || !Settings.ScriptFragmentsHash.Equals(OldScriptFragmentsHash))
 	{
 		Settings.SetScriptFragmentsNeedRebuild();
 	}
