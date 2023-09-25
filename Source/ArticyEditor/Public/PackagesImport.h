@@ -151,6 +151,7 @@ public:
 
 	TSet<FString> GetPackageNames() const;
 	TArray<FArticyPackageDef> GetPackages() const;
+	void ResetPackages();
 private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Packages")

@@ -583,6 +583,11 @@ TArray<FArticyPackageDef> FArticyPackageDefs::GetPackages() const
 	return Packages;
 }
 
+void FArticyPackageDefs::ResetPackages()
+{
+	Packages.Empty();
+}
+
 FString FArticyPackageDef::GetScriptFragmentHash() const
 {
 	return ScriptFragmentHash;
