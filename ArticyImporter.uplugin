@@ -7,7 +7,7 @@
 	"Category": "Articy",
 	"CreatedBy": "articy Software GmbH & Co. KG",
 	"CreatedByURL": "https://www.articy.com",
-	"DocsURL": "https://github.com/ArticySoftware/ArticyImporterForUnreal/blob/master/README.md",
+	"DocsURL": "https://github.com/ArticySoftware/ArticyXImporterForUnreal/blob/master/README.md",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/09bac960d10c4e2aa743b346f1a53abc",
 	"SupportURL": "https://www.articy.com/en/support/",
 	"EnabledByDefault": false,
