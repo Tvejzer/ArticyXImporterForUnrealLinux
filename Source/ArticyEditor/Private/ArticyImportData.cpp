@@ -13,7 +13,12 @@
 #else
 #include "Misc/MessageDialog.h"
 #endif
+#include "ArticyArchiveReader.h"
+#include "ISourceControlModule.h"
+#include "SourceControlHelpers.h"
+#include "StringTableGenerator.h"
 #include "BuildToolParser/BuildToolParser.h"
+#include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "ArticyImportData"
 
@@ -22,28 +27,48 @@ void FADISettings::ImportFromJson(TSharedPtr<FJsonObject> Json)
 	if (!Json.IsValid())
 		return;
 
+	JSON_TRY_STRING(Json, set_IncludedNodes);
+	if (!set_IncludedNodes.Contains(TEXT("Settings")))
+		return;
+
+	const FArticyId OldRuleSetId = RuleSetId;
+	JSON_TRY_HEX_ID(Json, RuleSetId);
+	if (RuleSetId != OldRuleSetId)
+	{
+		// Different rule set, start over
+		GlobalVariablesHash.Reset();
+		ObjectDefinitionsHash.Reset();
+		ObjectDefinitionsTextHash.Reset();
+		ScriptFragmentsHash.Reset();
+	}
+	
 	JSON_TRY_BOOL(Json, set_Localization);
 	JSON_TRY_STRING(Json, set_TextFormatter);
 	JSON_TRY_BOOL(Json, set_UseScriptSupport);
 	JSON_TRY_STRING(Json, ExportVersion);
-
-	const auto oldObjectDefsHash = ObjectDefinitionsHash;
-	const auto oldScriptFragmentHash = ScriptFragmentsHash;
-	JSON_TRY_STRING(Json, ObjectDefinitionsHash);
-	JSON_TRY_STRING(Json, ScriptFragmentsHash);
-	bObjectDefsOrGVsChanged = oldObjectDefsHash != ObjectDefinitionsHash;
-	bScriptFragmentsChanged = oldScriptFragmentHash != ScriptFragmentsHash;
 }
 
-void FArticyProjectDef::ImportFromJson(const TSharedPtr<FJsonObject> Json)
+void FArticyProjectDef::ImportFromJson(const TSharedPtr<FJsonObject> Json, FADISettings& Settings)
 {
 	if (!Json.IsValid())
 		return;
 
-	JSON_TRY_STRING(Json, Name);
-	JSON_TRY_STRING(Json, DetailName);
+	const FString OldGuid = Guid;
+	const FString OldTechnicalName = TechnicalName;
 	JSON_TRY_STRING(Json, Guid);
 	JSON_TRY_STRING(Json, TechnicalName);
+
+	if (!Guid.Equals(OldGuid) || !TechnicalName.Equals(OldTechnicalName))
+	{
+		// Treat as different export
+		Settings.GlobalVariablesHash.Reset();
+		Settings.ObjectDefinitionsHash.Reset();
+		Settings.ObjectDefinitionsTextHash.Reset();
+		Settings.ScriptFragmentsHash.Reset();
+	}
+
+	JSON_TRY_STRING(Json, Name);
+	JSON_TRY_STRING(Json, DetailName);
 }
 
 FString FArticyGVar::GetCPPTypeString() const
@@ -78,6 +103,10 @@ FString FArticyGVar::GetCPPValueString() const
 		break;
 
 	case EArticyType::ADT_String:
+		value = FString::Printf(TEXT("\"%s\""), *StringValue);
+		break;
+
+	case EArticyType::ADT_MultiLanguageString:
 		value = FString::Printf(TEXT("\"%s\""), *StringValue);
 		break;
 
@@ -120,6 +149,8 @@ void FArticyGVar::ImportFromJson(const TSharedPtr<FJsonObject> JsonVar)
 	case EArticyType::ADT_Integer: JsonVar->TryGetNumberField(TEXT("Value"), IntValue);
 		break;
 	case EArticyType::ADT_String: JsonVar->TryGetStringField(TEXT("Value"), StringValue);
+		break;
+	case EArticyType::ADT_MultiLanguageString: JsonVar->TryGetStringField(TEXT("Value"), StringValue);
 		break;
 	default: break;
 	}
@@ -207,6 +238,16 @@ const FString& FAIDScriptMethod::GetCPPDefaultReturn() const
 		return EmptyString;
 	}
 	if (ReturnType == "ArticyObject")
+	{
+		const static auto ArticyObject = FString{"nullptr"};
+		return ArticyObject;
+	}
+	if (ReturnType == "ArticyString")
+	{
+		const static auto ArticyObject = FString{"nullptr"};
+		return ArticyObject;
+	}
+	if (ReturnType == "ArticyMultiLanguageString")
 	{
 		const static auto ArticyObject = FString{"nullptr"};
 		return ArticyObject;
@@ -387,6 +428,29 @@ void FADIHierarchy::ImportFromJson(UArticyImportData* ImportData, const TSharedP
 	RootObject = UADIHierarchyObject::CreateFromJson(ImportData, Json);
 }
 
+void FArticyLanguageDef::ImportFromJson(const TSharedPtr<FJsonObject>& Json)
+{
+	if (!Json.IsValid())
+		return;
+
+	JSON_TRY_STRING(Json, CultureName);
+	JSON_TRY_STRING(Json, ArticyLanguageId);
+	JSON_TRY_STRING(Json, LanguageName);
+	JSON_TRY_BOOL(Json, IsVoiceOver);
+}
+
+void FArticyLanguages::ImportFromJson(const TSharedPtr<FJsonObject>& Json)
+{
+	if (!Json.IsValid())
+		return;
+
+	JSON_TRY_ARRAY(Json, Languages, {
+		FArticyLanguageDef def;
+		def.ImportFromJson(item->AsObject());
+		Languages.Add(def.CultureName, def);
+	});
+}
+
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 
@@ -422,27 +486,90 @@ void UArticyImportData::PostImport()
 	ArticyEditorModule.OnImportFinished.Broadcast();
 }
 
-void UArticyImportData::ImportFromJson(const TSharedPtr<FJsonObject> RootObject)
+void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject> RootObject)
 {
+	// Abort if we will have broken packages
+	if (!PackageDefs.ValidateImport(Archive, &RootObject->GetArrayField(JSON_SECTION_PACKAGES)))
+		return;
+	
 	// import the main sections
 	Settings.ImportFromJson(RootObject->GetObjectField(JSON_SECTION_SETTINGS));
-	Project.ImportFromJson(RootObject->GetObjectField(JSON_SECTION_PROJECT));
-	PackageDefs.ImportFromJson(&RootObject->GetArrayField(JSON_SECTION_PACKAGES));
-	Hierarchy.ImportFromJson(this, RootObject->GetObjectField(JSON_SECTION_HIERARCHY));
-	UserMethods.ImportFromJson(&RootObject->GetArrayField(JSON_SECTION_SCRIPTMEETHODS));
+
+	if (Settings.set_IncludedNodes.Contains(TEXT("Project")))
+		Project.ImportFromJson(RootObject->GetObjectField(JSON_SECTION_PROJECT), Settings);
+	
+	Languages.ImportFromJson(RootObject);
+
+	if (Settings.set_IncludedNodes.Contains(TEXT("Packages")))
+		PackageDefs.ImportFromJson(Archive, &RootObject->GetArrayField(JSON_SECTION_PACKAGES), Settings);
+
+	if (Settings.set_IncludedNodes.Contains(TEXT("Hierarchy")))
+	{
+		TSharedPtr<FJsonObject> HierarchyObject;
+		if (
+			Archive.FetchJson(
+				RootObject,
+				JSON_SECTION_HIERARCHY,
+				Settings.HierarchyHash,
+				HierarchyObject))
+		{
+			Hierarchy.ImportFromJson(this, HierarchyObject);
+		}
+	}
+
+	TSharedPtr<FJsonObject> UserMethodsObject;
+	if (
+		Archive.FetchJson(
+			RootObject,
+			JSON_SECTION_SCRIPTMEETHODS,
+			Settings.ScriptMethodsHash,
+			UserMethodsObject))
+	{
+		UserMethods.ImportFromJson(&UserMethodsObject->GetArrayField(JSON_SECTION_SCRIPTMEETHODS));
+	}
 
 	bool bNeedsCodeGeneration = false;
 
 	ParentChildrenCache.Empty();
 
-	// import GVs and ObjectDefs only if needed
-	if (Settings.DidObjectDefsOrGVsChange())
+	if (TSharedPtr<FJsonObject> GvObject;
+		Archive.FetchJson(
+			RootObject,
+			JSON_SECTION_GLOBALVARS,
+			Settings.GlobalVariablesHash,
+			GvObject))
 	{
-		GlobalVariables.ImportFromJson(&RootObject->GetArrayField(JSON_SECTION_GLOBALVARS), this);
-		ObjectDefinitions.ImportFromJson(&RootObject->GetArrayField(JSON_SECTION_OBJECTDEFS), this);
+		GlobalVariables.ImportFromJson(&GvObject->GetArrayField(JSON_SECTION_GLOBALVARS), this);
+		Settings.SetObjectDefinitionsNeedRebuild();
 		bNeedsCodeGeneration = true;
 	}
 
+	const TSharedPtr<FJsonObject> ObjectDefs = RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS);
+	if (TSharedPtr<FJsonObject> ObjTypes;
+		Archive.FetchJson(
+			RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS),
+			JSON_SUBSECTION_TYPES,
+			Settings.ObjectDefinitionsHash,
+			ObjTypes))
+	{
+		ObjectDefinitions.ImportFromJson(&ObjTypes->GetArrayField(JSON_SECTION_OBJECTDEFS), this);
+		Settings.SetObjectDefinitionsNeedRebuild();
+		bNeedsCodeGeneration = true;
+	}
+
+	const FString OldObjectDefintionsTextHash = Settings.ObjectDefinitionsTextHash;
+	if (TSharedPtr<FJsonObject> ObjTexts;
+		Archive.FetchJson(
+			RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS),
+			JSON_SUBSECTION_TEXTS,
+			Settings.ObjectDefinitionsTextHash,
+			ObjTexts))
+	{
+		ObjectDefinitions.GatherText(ObjTexts);
+		Settings.SetObjectDefinitionsNeedRebuild();
+		bNeedsCodeGeneration = true;
+	}
+	
 	if (Settings.DidScriptFragmentsChange() && this->GetSettings().set_UseScriptSupport)
 	{
 		this->GatherScripts();
@@ -479,6 +606,89 @@ void UArticyImportData::ImportFromJson(const TSharedPtr<FJsonObject> RootObject)
 				// Abort code generation
 				bNeedsCodeGeneration = false;
 			}
+		}
+	}
+
+	// Create string tables
+	if (!OldObjectDefintionsTextHash.Equals(Settings.ObjectDefinitionsTextHash))
+	{
+		for (const auto language : Languages.Languages)
+		{
+			StringTableGenerator(TEXT("ARTICY"), language.Key, [&](StringTableGenerator* CsvOutput)
+			{
+				// Handle object defs
+				for(const auto Text : GetObjectDefs().GetTexts())
+				{
+					CsvOutput->Line(Text.Key, Text.Value.Content[TEXT("")].Text);
+				}
+			});
+		}
+	}
+
+	for (const auto language : Languages.Languages)
+	{
+		// Handle packages
+		for(const auto& Package : GetPackageDefs().GetPackages())
+		{
+			const FString PackageName = Package.GetName();
+			const FString StringTableFileName = PackageName.Replace(TEXT(" "), TEXT("_"));
+			if (!Package.GetName().Equals(Package.GetPreviousName()))
+			{
+				// Needs rename
+				const FString OldStringTableFileName = Package.GetPreviousName().Replace(TEXT(" "), TEXT("_"));
+				IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+				ISourceControlModule& SCModule = ISourceControlModule::Get();
+
+				bool bCheckOutEnabled = false;
+				if(SCModule.IsEnabled())
+				{
+					bCheckOutEnabled = ISourceControlModule::Get().GetProvider().UsesCheckout();
+				}
+
+				// Work out the old and new file paths
+				FString OldPath, NewPath;
+				const FString OldFilePath = TEXT("ArticyContent/Generated") / OldStringTableFileName;
+				const FString NewFilePath = TEXT("ArticyContent/Generated") / StringTableFileName;
+				if (language.Key.IsEmpty())
+				{
+					OldPath = FPaths::ProjectContentDir() / OldFilePath;
+					NewPath = FPaths::ProjectContentDir() / NewFilePath;
+				} else {
+					OldPath = FPaths::ProjectContentDir() / TEXT("L10N") / language.Key / OldFilePath;
+					NewPath = FPaths::ProjectContentDir() / TEXT("L10N") / language.Key / NewFilePath;
+				}
+				OldPath += TEXT(".csv");
+				NewPath += TEXT(".csv");
+				
+				// Check out and rename
+				if(PlatformFile.FileExists(*OldPath))
+				{
+					if (bCheckOutEnabled)
+						USourceControlHelpers::CheckOutFile(*OldPath);
+
+					// Rename the file
+					PlatformFile.MoveFile(*NewPath, *OldPath);
+					
+					if (bCheckOutEnabled)
+					{
+						USourceControlHelpers::MarkFileForAdd(*NewPath);
+						USourceControlHelpers::MarkFileForDelete(*OldPath);
+					}
+				}
+			}
+			
+			if (!Package.GetIsIncluded())
+				continue;
+			
+			StringTableGenerator(StringTableFileName, language.Key,
+				[&](StringTableGenerator* CsvOutput)
+			{
+				// Handle object defs
+				for(const auto Text : GetPackageDefs().GetTexts(Package))
+				{
+					CsvOutput->Line(Text.Key, Text.Value.Content[TEXT("")].Text);
+				}
+			});
 		}
 	}
 
@@ -737,6 +947,7 @@ void UArticyImportData::BuildCachedVersion()
 	CachedData.PackageDefs = this->PackageDefs;
 	CachedData.UserMethods = this->UserMethods;
 	CachedData.Hierarchy = this->Hierarchy;
+	CachedData.Languages = this->Languages;
 	CachedData.ScriptFragments = this->ScriptFragments;
 	CachedData.ImportedPackages = this->ImportedPackages;
 	CachedData.ParentChildrenCache = this->ParentChildrenCache;
@@ -753,6 +964,7 @@ void UArticyImportData::ResolveCachedVersion()
 	this->PackageDefs = CachedData.PackageDefs;
 	this->UserMethods = CachedData.UserMethods;
 	this->Hierarchy = CachedData.Hierarchy;
+	this->Languages = CachedData.Languages;
 	this->ScriptFragments = CachedData.ScriptFragments;
 	this->ImportedPackages = CachedData.ImportedPackages;
 	this->ParentChildrenCache = CachedData.ParentChildrenCache;

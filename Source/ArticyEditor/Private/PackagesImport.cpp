@@ -16,6 +16,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include <string>
 
+#include "ArticyArchiveReader.h"
 #include "ArticyPluginSettings.h"
 
 #define STRINGIFY(x) #x
@@ -81,7 +82,7 @@ UArticyObject* FArticyModelDef::GenerateSubAsset(const UArticyImportData* Data, 
 		if (ensure(obj))
 		{
 			obj->Initialize();
-			Data->GetObjectDefs().InitializeModel(obj, *this, Data);
+			Data->GetObjectDefs().InitializeModel(obj, *this, Data, Outer->GetName());
 
 			//SAVE!!
 
@@ -135,26 +136,58 @@ EArticyAssetCategory FArticyModelDef::GetAssetCategoryFromString(const FString C
 
 //---------------------------------------------------------------------------//
 
-void FArticyPackageDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonPackage)
+void FArticyPackageDef::ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject>& JsonPackage)
 {
-	Models.Reset();
-
 	if(!JsonPackage.IsValid())
+		return;
+
+	JSON_TRY_HEX_ID(JsonPackage, Id);
+	JSON_TRY_BOOL(JsonPackage, IsIncluded);
+
+	if (!IsIncluded)
 		return;
 
 	JSON_TRY_STRING(JsonPackage, Name);
 	JSON_TRY_STRING(JsonPackage, Description);
 	JSON_TRY_BOOL(JsonPackage, IsDefaultPackage);
+	JSON_TRY_STRING(JsonPackage, ScriptFragmentHash);
 
-	JSON_TRY_ARRAY(JsonPackage, Models,
-	{
-		auto obj = item->AsObject();
-		if(obj.IsValid())
+	TSharedPtr<FJsonObject> Files;
+	JSON_TRY_OBJECT(JsonPackage, Files, {
+		TSharedPtr<FJsonObject> Objects;
+		if (!Archive.FetchJson(
+			*obj,
+			JSON_SUBSECTION_OBJECTS,
+			PackageObjectsHash,
+			Objects))
 		{
-			FArticyModelDef model;
-			model.ImportFromJson(obj);
-			Models.Add(model);
+			return;
 		}
+
+		Models.Reset();
+		JSON_TRY_ARRAY(Objects, Objects,
+		{
+			auto innerObj = item->AsObject();
+			if(innerObj.IsValid())
+			{
+				FArticyModelDef model;
+				model.ImportFromJson(innerObj);
+				Models.Add(model);
+			}
+		});
+
+		TSharedPtr<FJsonObject> TextData;
+		if (!Archive.FetchJson(
+			*obj,
+			JSON_SUBSECTION_TEXTS,
+			PackageTextsHash,
+			TextData))
+		{
+			return;
+		}
+
+		Texts.Reset();
+		GatherText(TextData);
 	});
 }
 
@@ -234,31 +267,270 @@ const FString FArticyPackageDef::GetName() const
 	return Name;
 }
 
+const FString FArticyPackageDef::GetPreviousName() const
+{
+	if (PreviousName.Len() == 0)
+	{
+		return Name;
+	}
+	
+	return PreviousName;
+}
+
+void FArticyPackageDef::SetName(const FString& NewName)
+{
+	PreviousName = Name;
+	Name = NewName;
+}
+
+
+FArticyId FArticyPackageDef::GetId() const
+{
+	return Id;
+}
+
+bool FArticyPackageDef::GetIsIncluded() const
+{
+	return IsIncluded;
+}
+
 //---------------------------------------------------------------------------//
 
-void FArticyPackageDefs::ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Json)
+void FArticyPackageDefs::ImportFromJson(
+	const UArticyArchiveReader& Archive,
+	const TArray<TSharedPtr<FJsonValue>>* Json,
+	FADISettings& Settings)
 {
-	Packages.Reset();
-
 	if(!Json)
 		return;
 
-	for(const auto pack : *Json)
+	TSet<FString> OldPackageScriptHashes;
+	TArray<FArticyPackageDef> PackagesToRemove;
+
+	// Iterate over existing packages
+	for (auto& ExistingPackage : Packages)
+	{
+		OldPackageScriptHashes.Add(ExistingPackage.GetScriptFragmentHash());
+		
+		bool bExistingPackageFound = false;
+
+		// Iterate over new package list
+		for (const auto pack : *Json)
+		{
+			const auto obj = pack->AsObject();
+			if (!obj.IsValid())
+				continue;
+
+			FArticyPackageDef package;
+			package.ImportFromJson(Archive, obj);
+
+			// If package with the same Id is found
+			if (ExistingPackage.GetId() == package.GetId())
+			{
+				bExistingPackageFound = true;
+
+				const FString& OldName = ExistingPackage.GetName();
+				const FString& NewName = package.GetName();
+				
+				// If IsIncluded is set on the new package, replace the existing package
+				if (package.GetIsIncluded())
+				{
+					ExistingPackage = package;
+
+					// Useful if we ever decide to rename included packages 
+					ExistingPackage.SetName(OldName);
+				}
+				
+				if (!NewName.Equals(OldName))
+				{
+					// Name has changed
+					ExistingPackage.SetName(NewName);					
+				}
+
+				break;
+			}
+		}
+
+		// If existing package was not found in the new package list, mark it for removal
+		if (!bExistingPackageFound)
+		{
+			PackagesToRemove.Add(ExistingPackage);
+		}
+	}
+
+	// Remove packages that don't exist in the new package list
+	for (const auto& PackageToRemove : PackagesToRemove)
+	{
+		Packages.RemoveSingle(PackageToRemove);
+	}
+
+	// Iterate over new package list
+	for (const auto pack : *Json)
 	{
 		const auto obj = pack->AsObject();
-		if(!obj.IsValid())
+		if (!obj.IsValid())
 			continue;
 
 		FArticyPackageDef package;
-		package.ImportFromJson(obj);
-		Packages.Add(package);
+		package.ImportFromJson(Archive, obj);
+		
+		bool bExistingPackageFound = false;
+
+		// Check if package already exists in the Packages array
+		for (const auto& ExistingPackage : Packages)
+		{
+			if (ExistingPackage.GetId() == package.GetId())
+			{
+				bExistingPackageFound = true;
+				break;
+			}
+		}
+
+		// If package doesn't exist, add it to the Packages array
+		if (!bExistingPackageFound)
+		{
+			Packages.Add(package);
+		}
 	}
+
+	// Check if set of hashes are the same
+	if (OldPackageScriptHashes.Num() == Packages.Num())
+	{
+		bool bScriptFragmentsChanged = false;
+		
+		for (auto& Package : Packages)
+		{
+			if (!OldPackageScriptHashes.Contains(Package.GetScriptFragmentHash()))
+			{
+				bScriptFragmentsChanged = true;
+				break;
+			}
+		}
+
+		if (!bScriptFragmentsChanged)
+		{
+			// Skip rebuilding script fragments - they are the same
+			return;
+		}
+	}
+	
+	Settings.SetScriptFragmentsNeedRebuild();
+}
+
+bool FArticyPackageDefs::ValidateImport(
+	const UArticyArchiveReader& Archive,
+	const TArray<TSharedPtr<FJsonValue>>* Json)
+{
+	if(!Json)
+		return false;
+
+	// Iterate over existing packages
+	for (auto& ExistingPackage : Packages)
+	{
+		// Old package has data
+		if (ExistingPackage.GetIsIncluded())
+			continue;
+
+		bool bPackageDataFound = false;
+
+		// Iterate over new package list
+		for (const auto pack : *Json)
+		{
+			const auto obj = pack->AsObject();
+			if (!obj.IsValid())
+				continue;
+
+			FArticyPackageDef package;
+			package.ImportFromJson(Archive, obj);
+
+			// If package with the same Id is found
+			if (ExistingPackage.GetId() == package.GetId())
+			{
+				// If IsIncluded is set on the new package, we are safe to continue
+				if (package.GetIsIncluded())
+				{
+					bPackageDataFound = true;
+				}
+
+				break;
+			}
+		}
+
+		if (!bPackageDataFound)
+		{
+			UE_LOG(LogArticyEditor, Error, TEXT("No data for package %s"), *ExistingPackage.GetName());
+			return false;
+		}
+	}
+
+	// Iterate over new package list
+	for (const auto pack : *Json)
+	{
+		const auto obj = pack->AsObject();
+		if (!obj.IsValid())
+			continue;
+
+		FArticyPackageDef package;
+		package.ImportFromJson(Archive, obj);
+
+		// New package has data
+		if (package.GetIsIncluded())
+			continue;
+
+		bool bPackageDataFound = false;
+		
+		// Check if package already exists in the Packages array
+		for (const auto& ExistingPackage : Packages)
+		{
+			if (ExistingPackage.GetId() == package.GetId())
+			{
+				// Old package has data
+				if (ExistingPackage.GetIsIncluded())
+				{
+					bPackageDataFound = true;
+				}
+				break;
+			}
+		}
+
+		if (!bPackageDataFound)
+		{
+			UE_LOG(LogArticyEditor, Error, TEXT("No data for package %s"), *package.GetName());
+			return false;
+		}
+	}
+
+	// All checks passed - safe to import
+	return true;
 }
 
 void FArticyPackageDefs::GatherScripts(UArticyImportData* Data) const
 {
 	for(const auto& pack : Packages)
 		pack.GatherScripts(Data);
+}
+
+void FArticyPackageDef::GatherText(const TSharedPtr<FJsonObject>& Json)
+{
+	for (auto JsonValue = Json->Values.CreateConstIterator(); JsonValue; ++JsonValue)
+	{
+		const FString KeyName = (*JsonValue).Key;
+		const TSharedPtr<FJsonValue> Value = (*JsonValue).Value;
+
+		FArticyTexts Text;
+		Text.ImportFromJson(Value->AsObject());
+		Texts.Add(KeyName, Text);
+	}
+}
+
+TMap<FString, FArticyTexts> FArticyPackageDef::GetTexts() const
+{
+	return Texts;
+}
+
+TMap<FString, FArticyTexts> FArticyPackageDefs::GetTexts(const FArticyPackageDef& Package)
+{
+	return Package.GetTexts();
 }
 
 void FArticyPackageDefs::GenerateAssets(UArticyImportData* Data) const
@@ -304,4 +576,14 @@ TSet<FString> FArticyPackageDefs::GetPackageNames() const
 	}
 
 	return outArray;
+}
+
+TArray<FArticyPackageDef> FArticyPackageDefs::GetPackages() const
+{
+	return Packages;
+}
+
+FString FArticyPackageDef::GetScriptFragmentHash() const
+{
+	return ScriptFragmentHash;
 }

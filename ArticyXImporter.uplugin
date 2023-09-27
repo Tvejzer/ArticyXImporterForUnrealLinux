@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0",
-	"FriendlyName": "ArticyImporter",
-	"Description": "Importer and interface for articy:draft.",
+	"VersionName": "1.0.0",
+	"FriendlyName": "ArticyXImporter",
+	"Description": "Importer and interface for articy:draft X.",
 	"Category": "Articy",
 	"CreatedBy": "articy Software GmbH & Co. KG",
 	"CreatedByURL": "https://www.articy.com",

@@ -27,15 +27,33 @@ public:
 	/** If this is false, no ExpressoScripts class is generated, and script fragments are not evaluated/executed. */
 	UPROPERTY(VisibleAnywhere, Category="Settings")
 	bool set_UseScriptSupport = false;
-	
+
+	UPROPERTY(VisibleAnywhere, Category="Settings")
+	FString set_IncludedNodes = "";
+
+	UPROPERTY(VisibleAnywhere, Category="Settings")
+	FArticyId RuleSetId;
+
 	UPROPERTY(VisibleAnywhere, Category="Settings")
 	FString ExportVersion = "";
 
 	UPROPERTY(VisibleAnywhere, Category="Settings")
+	FString GlobalVariablesHash = "";
+
+	UPROPERTY(VisibleAnywhere, Category="Settings")
 	FString ObjectDefinitionsHash = "";
+
+	UPROPERTY(VisibleAnywhere, Category="Settings")
+	FString ObjectDefinitionsTextHash = "";
 
 	UPROPERTY(VisibleAnywhere, Category = "Settings")
 	FString ScriptFragmentsHash = "";
+
+	UPROPERTY(VisibleAnywhere, Category="Settings")
+	FString HierarchyHash = "";
+
+	UPROPERTY(VisibleAnywhere, Category="Settings")
+	FString ScriptMethodsHash = "";
 
 	void ImportFromJson(const TSharedPtr<FJsonObject> JsonRoot);
 
@@ -45,6 +63,9 @@ public:
 	void SetObjectDefinitionsRebuilt() { bObjectDefsOrGVsChanged = false; }
 	void SetScriptFragmentsRebuilt() { bScriptFragmentsChanged = false; }
 
+	void SetObjectDefinitionsNeedRebuild() { bObjectDefsOrGVsChanged = true; }
+	void SetScriptFragmentsNeedRebuild() { bScriptFragmentsChanged = true; }
+
 
 protected:
 	//unused in the UE plugin
@@ -52,9 +73,9 @@ protected:
 	bool set_Localization = false;
 
 private:
-	bool bObjectDefsOrGVsChanged = true;
+	bool bObjectDefsOrGVsChanged = false;
 
-	bool bScriptFragmentsChanged = true;
+	bool bScriptFragmentsChanged = false;
 };
 
 /**
@@ -75,7 +96,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category="Project")
 	FString TechnicalName;
 
-	void ImportFromJson(const TSharedPtr<FJsonObject> JsonRoot);
+	void ImportFromJson(const TSharedPtr<FJsonObject> JsonRoot, FADISettings& Settings);
 };
 
 UENUM()
@@ -83,7 +104,8 @@ enum class EArticyType : uint8
 {
 	ADT_Boolean,
 	ADT_Integer,
-	ADT_String
+	ADT_String,
+	ADT_MultiLanguageString
 };
 
 USTRUCT()
@@ -210,6 +232,41 @@ public:
 	void ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Json);
 };
 
+/**
+ * A single language definition
+ */
+USTRUCT()
+struct FArticyLanguageDef
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(VisibleAnywhere, Category="Language")
+	FString CultureName;
+	UPROPERTY(VisibleAnywhere, Category="Language")
+	FString ArticyLanguageId;
+	UPROPERTY(VisibleAnywhere, Category="Language")
+	FString LanguageName;
+	UPROPERTY(VisibleAnywhere, Category="Language")
+	bool IsVoiceOver;
+
+	void ImportFromJson(const TSharedPtr<FJsonObject>& JsonRoot);
+};
+
+/**
+ * The Languages object in the manifest file.
+ */
+USTRUCT()
+struct FArticyLanguages
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(VisibleAnywhere, Category="Languages")
+	TMap<FString, FArticyLanguageDef> Languages;
+
+	void ImportFromJson(const TSharedPtr<FJsonObject>& JsonRoot);
+};
 
 /*Used as a workaround to store an array in a map*/
 USTRUCT()
@@ -298,6 +355,8 @@ struct ARTICYEDITOR_API FArticyImportDataStruct
 		FAIDUserMethods UserMethods;
 	UPROPERTY(VisibleAnywhere, Category = "ImportData")
 		FADIHierarchy Hierarchy;
+	UPROPERTY(VisibleAnywhere, Category = "ImportData")
+		FArticyLanguages Languages;
 
 	UPROPERTY(VisibleAnywhere, Category = "ImportData")
 		TSet<FArticyExpressoFragment> ScriptFragments;
@@ -326,7 +385,7 @@ public:
 	
 	void PostImport();
 
-	void ImportFromJson(const TSharedPtr<FJsonObject> RootObject);
+	void ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject> RootObject);
 
 	const static TWeakObjectPtr<UArticyImportData> GetImportData();
 	const FADISettings& GetSettings() const { return Settings; }
@@ -383,6 +442,8 @@ private:
 	FAIDUserMethods UserMethods;
 	UPROPERTY(VisibleAnywhere, Category="ImportData")
 	FADIHierarchy Hierarchy;
+	UPROPERTY(VisibleAnywhere, Category="ImportData")
+	FArticyLanguages Languages;
 
 	UPROPERTY(VisibleAnywhere, Category="ImportData")
 	TSet<FArticyExpressoFragment> ScriptFragments;

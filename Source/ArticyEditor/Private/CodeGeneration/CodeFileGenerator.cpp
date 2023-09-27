@@ -145,6 +145,18 @@ void CodeFileGenerator::WriteToFile() const
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	ISourceControlModule& SCModule = ISourceControlModule::Get();
 
+	bool bFileExisted = false;
+	if(PlatformFile.FileExists(*Path))
+	{
+		// If the content won't change, don't write the file
+		FString OldContent;
+		FFileHelper::LoadFileToString(OldContent, *Path);
+		if (FileContent.Equals(OldContent))
+		{
+			return;
+		}
+	}
+	
 	bool bCheckOutEnabled = false;
 	if(SCModule.IsEnabled())
 	{
@@ -152,11 +164,9 @@ void CodeFileGenerator::WriteToFile() const
 	}
 	
 	// try check out the file if it existed
-	bool bFileExisted = false;
-	if(PlatformFile.FileExists(*Path) && bCheckOutEnabled)
+	if(bFileExisted && bCheckOutEnabled)
 	{
 		USourceControlHelpers::CheckOutFile(*Path);
-		bFileExisted = true;
 	}
 	
 	const bool bFileWritten = FFileHelper::SaveStringToFile(FileContent, *Path, FFileHelper::EEncodingOptions::ForceUTF8);
