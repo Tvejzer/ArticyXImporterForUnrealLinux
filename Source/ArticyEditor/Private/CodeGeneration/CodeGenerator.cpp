@@ -17,6 +17,7 @@
 #include "GenericPlatform/GenericPlatformMisc.h"
 #include "ArticyEditorModule.h"
 #include "ArticyPluginSettings.h"
+#include "ArticyTypeGenerator.h"
 #include "AssetToolsModule.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Misc/FileHelper.h"
@@ -82,6 +83,11 @@ FString CodeGenerator::GetFeatureInterfaceClassName(const UArticyImportData* Dat
 	return (bOmittPrefix ? "" : "I") + Data->GetProject().TechnicalName + "ObjectWith" + Feature.GetTechnicalName() + "Feature";
 }
 
+FString CodeGenerator::GetArticyTypeClassname(const UArticyImportData* Data, const bool bOmittPrefix)
+{
+	return (bOmittPrefix ? "" : "U") + Data->GetProject().TechnicalName + "TypeSystem";
+}
+
 bool CodeGenerator::DeleteGeneratedCode(const FString& Filename)
 {
 	if (Filename.IsEmpty())
@@ -130,6 +136,7 @@ bool CodeGenerator::GenerateCode(UArticyImportData* Data)
 		/* generate scripts as well due to them including the generated global variables
 		 * if we remove a GV set but don't regenerate expresso scripts, the resulting class won't compile */
 		ExpressoScriptsGenerator::GenerateCode(Data);
+		ArticyTypeGenerator::GenerateCode(Data);
 		bCodeGenerated = true;
 	}
 	// if object defs of GVs didn't change, but scripts changed, regenerate only expresso scripts
@@ -400,6 +407,7 @@ void CodeGenerator::GenerateAssets(UArticyImportData* Data)
 		//  have to settle with the ensures.
 		return;
 	}
+	ArticyTypeGenerator::GenerateAsset(Data);
 
 	//generate assets for all the imported objects
 	PackagesGenerator::GenerateAssets(Data);

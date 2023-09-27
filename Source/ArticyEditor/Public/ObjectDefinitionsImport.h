@@ -70,6 +70,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category="ObjectProperty")
 	FString Tooltip = "";
 
+	UPROPERTY(VisibleAnywhere, Category="ObjectProperty")
+	FArticyType ArticyType;
+
 	friend class UArticyImportData;
 };
 
@@ -126,6 +129,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category="TemplateFeature")
 	TArray<FArticyTemplateConstraint> Constraints;
+
+	UPROPERTY(VisibleAnywhere, Category="TemplateFeature")
+	FArticyType ArticyType;
 };
 
 USTRUCT()
@@ -150,6 +156,9 @@ public:
 	FString GetDisplayName() const { return DisplayName; }
 	const TArray<FArticyTemplateFeatureDef>& GetFeatures() const { return Features; }
 
+	UPROPERTY(VisibleAnywhere, Category="Template")
+	FArticyType ArticyType;
+
 private:
 
 	UPROPERTY(VisibleAnywhere, Category="Template")
@@ -159,6 +168,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category="Template")
 	TArray<FArticyTemplateFeatureDef> Features;
+	
 };
 
 //---------------------------------------------------------------------------//
@@ -196,6 +206,9 @@ public:
 	FString GetCppBaseClasses(const UArticyImportData* Data) const;
 	const FName& GetOriginalType() const { return Type; }
 	const TArray<FArticyTemplateFeatureDef>& GetFeatures() const;
+
+	UPROPERTY(VisibleAnywhere, Category="ObjectDef")
+	FArticyType ArticyType;
 
 private:
 

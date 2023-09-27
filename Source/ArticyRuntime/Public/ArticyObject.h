@@ -7,6 +7,7 @@
 #include "CoreMinimal.h"
 #include "ArticyPrimitive.h"
 #include "ArticyBaseTypes.h"
+#include "ArticyType.h"
 #include "Dom/JsonValue.h"
 #include "ArticyObject.generated.h"
 

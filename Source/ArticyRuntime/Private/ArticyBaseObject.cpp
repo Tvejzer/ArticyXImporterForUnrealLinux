@@ -6,6 +6,7 @@
 
 #include "ArticyBaseObject.h"
 #include "ArticyPrimitive.h"
+#include "ArticyTypeSystem.h"
 
 UArticyPrimitive* UArticyBaseObject::GetSubobject(FArticyId Id) const
 {
@@ -16,4 +17,9 @@ UArticyPrimitive* UArticyBaseObject::GetSubobject(FArticyId Id) const
 void UArticyBaseObject::AddSubobject(UArticyPrimitive* Obj)
 {
 	Subobjects.Add(Obj->GetId(), Obj);
+}
+
+FArticyType UArticyBaseObject::GetArticyType() const
+{
+	return ArticyType;
 }

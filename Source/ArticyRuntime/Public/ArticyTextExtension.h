@@ -51,7 +51,8 @@ protected:
 	FString GetSource(const FString &SourceName) const;
 	FString FormatNumber(const FString &SourceValue, const FString &NumberFormat) const;
 	void GetGlobalVariable(const FString& SourceName, const FArticyGvName GvName, FString& OutString, bool& OutSuccess) const;
-	void GetObjectProperty(const FString& SourceName, const FString& NameOrId, const FString& PropertyName, FString& OutString, bool& OutSuccess) const;
+	void GetObjectProperty(const FString& SourceName, const FString& NameOrId, const FString& PropertyName, const bool bRequestType, FString& OutString, bool& OutSuccess) const;
+	static void GetTypeProperty(const FString& TypeName, const FString& PropertyName, FString& OutString, bool& OutSuccess);
 	FString ExecuteMethod(const FText& Method, const TArray<FString>& Args) const;
 	EArticyObjectType GetObjectType(UArticyVariable** Object) const;
 	FString ResolveBoolean(const FString &SourceName, const bool Value) const;

@@ -26,9 +26,11 @@ public:
 	/** Helper methods for generated class/struct names. */
 	static FString GetGeneratedInterfacesFilename(const UArticyImportData* Data);
 	static FString GetGeneratedTypesFilename(const UArticyImportData* Data);
+	static FString GetGeneratedTypeInformationFilename(const UArticyImportData* Data);
 	static FString GetGlobalVarsClassname(const UArticyImportData* Data, const bool bOmittPrefix = false);
 	static FString GetGVNamespaceClassname(const UArticyImportData* Data, const FString& Namespace);
 	static FString GetDatabaseClassname(const UArticyImportData* Data, const bool bOmittPrefix = false);
+	static FString GetArticyTypeClassname(const UArticyImportData* Data, const bool bOmittPrefix = false);
 	static FString GetMethodsProviderClassname(const UArticyImportData* Data, const bool bOmittPrefix = false);
 	static FString GetExpressoScriptsClassname(const UArticyImportData* Data, const bool bOmittPrefix = false);
 	static FString GetFeatureInterfaceClassName(const UArticyImportData* Data, const FArticyTemplateFeatureDef& Feature, const bool bOmittPrefix = false);

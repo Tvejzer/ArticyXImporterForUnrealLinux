@@ -34,8 +34,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Articy")
 	int32 CloneId = 0;
 
-
-
 protected:
 	/** Used internally by ArticyImporter. */
 	void InitFromJson(TSharedPtr<FJsonValue> Json) override

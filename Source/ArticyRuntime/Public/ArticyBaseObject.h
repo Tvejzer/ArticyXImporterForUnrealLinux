@@ -9,6 +9,8 @@
 #include "ArticyBaseTypes.h"
 #include "Engine/Engine.h"
 #include <Engine/World.h>
+
+#include "ArticyType.h"
 #include "Interfaces/ArticyReflectable.h"
 
 #include "ArticyBaseObject.generated.h"
@@ -30,6 +32,11 @@ public:
 	void Initialize() { bWasDeserialized = true; }
 
 	UArticyPrimitive* GetSubobject(FArticyId Id) const;
+
+	UFUNCTION(BlueprintCallable)
+	FArticyType GetArticyType() const;
+
+	FArticyType ArticyType;
 
 protected:
 	virtual void InitFromJson(TSharedPtr<FJsonValue> Json) { }
