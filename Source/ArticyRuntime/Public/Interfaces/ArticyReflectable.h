@@ -7,7 +7,10 @@
 #include "CoreMinimal.h"
 #include "Runtime/CoreUObject/Public/UObject/Interface.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "ArticyChangedProperty.h"
 #include "ArticyReflectable.generated.h"
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FReportChangedDelegate, FArticyChangedProperty&);
 
 UINTERFACE()
 class UArticyReflectable : public UInterface { GENERATED_BODY() };
@@ -71,6 +74,8 @@ public:
 
 	virtual UClass* GetObjectClass() const { return _getUObject()->GetClass(); }
 
+	FReportChangedDelegate ReportChanged;
+
 private:
 	/**
 	 * Caches and returns all UProperty pointers of this UClass.
@@ -105,7 +110,17 @@ TValue IArticyReflectable::SetProp(FName Property, TValue Value, int32 ArrayInde
 	TValue* valPtr = GetPropPtr<TValue>(Property, ArrayIndex);
 	if(valPtr)
 	{
+		FArticyChangedProperty ChangedProperty;
+		ChangedProperty.Property = Property;
+		auto ObjectReference = Cast<UArticyBaseObject>(this);
+		if (ObjectReference)
+		{
+			ChangedProperty.ObjectReference = ObjectReference;
+		}
+
 		(*valPtr) = Value;
+
+		ReportChanged.Broadcast(ChangedProperty);
 		return (*valPtr);
 	}
 
