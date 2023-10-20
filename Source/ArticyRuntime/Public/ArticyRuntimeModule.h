@@ -20,6 +20,8 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
+	void LoadStringTables(bool);
+
 private:
-	void IterateStringTables(const FString& DirectoryPath) const;
+	void IterateStringTables(const FString& DirectoryPath, bool Load) const;
 };

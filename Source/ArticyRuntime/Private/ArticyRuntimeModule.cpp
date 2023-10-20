@@ -6,11 +6,19 @@
 #include "ArticyRuntimeModule.h"
 #include "Internationalization/StringTableRegistry.h"
 
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
+
 DEFINE_LOG_CATEGORY(LogArticyRuntime)
 
 void FArticyRuntimeModule::StartupModule()
 {
-	IterateStringTables(FPaths::ProjectContentDir() / "ArticyContent/Generated");
+#if WITH_EDITOR
+	FEditorDelegates::PostPIEStarted.AddRaw(this, &FArticyRuntimeModule::LoadStringTables);
+#endif
+
+	LoadStringTables(false);
 }
 
 void FArticyRuntimeModule::ShutdownModule()
@@ -18,7 +26,16 @@ void FArticyRuntimeModule::ShutdownModule()
 
 }
 
-void FArticyRuntimeModule::IterateStringTables(const FString& DirectoryPath) const
+void FArticyRuntimeModule::LoadStringTables(bool)
+{
+#if WITH_EDITOR
+	IterateStringTables(FPaths::ProjectContentDir() / "ArticyContent/Generated", false);
+#endif
+
+	IterateStringTables(FPaths::ProjectContentDir() / "ArticyContent/Generated", true);
+}
+
+void FArticyRuntimeModule::IterateStringTables(const FString& DirectoryPath, bool Load) const
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	
@@ -30,11 +47,18 @@ void FArticyRuntimeModule::IterateStringTables(const FString& DirectoryPath) con
 		for (const FString& FilePath : FoundFiles)
 		{
 			FString StringTable = FPaths::GetBaseFilename(*FilePath, true);
-			FStringTableRegistry::Get().Internal_LocTableFromFile(
-				FName(StringTable),
-				StringTable,
-				"ArticyContent/Generated/" + StringTable + ".csv",
-				FPaths::ProjectContentDir());
+			if (Load)
+			{
+				FStringTableRegistry::Get().Internal_LocTableFromFile(
+					FName(StringTable),
+					StringTable,
+					"ArticyContent/Generated/" + StringTable + ".csv",
+					FPaths::ProjectContentDir());
+			}
+			else
+			{
+				FStringTableRegistry::Get().UnregisterStringTable(FName(StringTable));
+			}
 		}
 	}
 }
