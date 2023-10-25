@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ArticyObjectWith_Base.h"
+#include "ArticyTextExtension.h"
 #include "ArticyObjectWithMenuText.generated.h"
 
 UINTERFACE(MinimalAPI, BlueprintType, meta=(CannotImplementInterfaceInBlueprint))
@@ -20,13 +21,33 @@ class IArticyObjectWithMenuText : public IArticyObjectWith_Base
 public:
 	
 	UFUNCTION(BlueprintCallable, Category="ArticyObjectWithMenuText")
-	virtual FText& GetMenuText()
+	virtual FText GetMenuText()
 	{
-		static auto MenuText = FName("MenuText");
-		return GetProperty<FText>(MenuText);
+		static const auto PropName = FName("MenuText");
+		FText& Key = GetProperty<FText>(PropName);
+		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
+
+		// Look up entry in specified string table
+		TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
+		if (!TableName.IsSet())
+		{
+			TableName = TEXT("ARTICY");
+		}
+		const FText SourceString = FText::FromStringTable(
+			FName(TableName.GetValue()),
+			Key.ToString(),
+			EStringTableLoadingPolicy::FindOrFullyLoad);
+		const FString Decoded = SourceString.ToString();
+		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
+		{
+			return ResolveText(SourceString);
+		}
+
+		// By default, return the key
+		return ResolveText(Key);
 	}
 
-	virtual const FText& GetMenuText() const
+	virtual const FText GetMenuText() const
 	{
 		return const_cast<IArticyObjectWithMenuText*>(this)->GetMenuText();
 	}
@@ -36,6 +57,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category="ArticyObjectWithMenuText")
 	virtual FText& SetMenuText(UPARAM(ref) const FText& MenuText)
 	{
-		return GetMenuText() = MenuText;
+		static const auto PropName = FName("MenuText");
+		return GetProperty<FText>(PropName) = MenuText;
+	}
+
+protected:
+	virtual FText ResolveText(FText SourceText) const
+	{
+		return UArticyTextExtension::Get()->Resolve(SourceText);
 	}
 };

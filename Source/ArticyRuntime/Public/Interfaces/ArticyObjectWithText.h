@@ -60,7 +60,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category="ArticyObjectWithText")
 	virtual FText& SetText(UPARAM(ref) const FText& Text)
 	{
-		return GetText() = Text;
+		static const auto PropName = FName("Text");
+		return GetProperty<FText>(PropName) = Text;
 	}
 
 protected:
