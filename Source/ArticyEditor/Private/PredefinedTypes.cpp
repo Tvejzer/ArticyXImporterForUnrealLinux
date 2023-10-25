@@ -112,6 +112,8 @@ FArticyPredefTypes::FArticyPredefTypes()
 													return static_cast<EArticyPreviewImageViewBoxModes>(num);
 												}));*/
 
+	Types.Add(TEXT("PreviewImageViewBoxModes"), Enum.Get());
+
 	Types.Add(TEXT("PreviewImage"), PREDEFINE_ARTICYOBJECT_TYPE(UArticyPreviewImage));
 	
 	//========================================//
