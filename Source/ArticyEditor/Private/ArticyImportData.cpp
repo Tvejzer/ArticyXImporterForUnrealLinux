@@ -695,7 +695,7 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 				// Handle object defs
 				for(const auto Text : GetPackageDefs().GetTexts(Package))
 				{
-					CsvOutput->Line(Text.Key, Text.Value.Content[TEXT("")].Text);
+					CsvOutput->Line(Text.Key, Text.Value.Content.IsEmpty() ? Text.Key : Text.Value.Content[TEXT("")].Text);
 				}
 			});
 		}
