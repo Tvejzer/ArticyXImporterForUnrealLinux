@@ -145,6 +145,7 @@ FArticyPredefTypes::FArticyPredefTypes()
 												Json->TryGetNumber(num);
 												return static_cast<EArticyLocationAnchorSize>(num);
 											}));*/
+	Types.Add(TEXT("LocationAnchorSize"), Enum.Get());
 
 	Types.Add(TEXT("LocationAnchor"), PREDEFINE_TYPE(FArticyLocationAnchor));
 
