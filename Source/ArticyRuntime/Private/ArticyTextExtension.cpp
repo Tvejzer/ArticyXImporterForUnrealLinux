@@ -227,7 +227,8 @@ void UArticyTextExtension::GetObjectProperty(const FString& SourceName, const FS
 	}
 
 	// Handle based on data type
-	switch (ExpressoType PropertyType {Object, PropertyName}; PropertyType.Type) {
+	ExpressoType PropertyType {Object, PropertyName};
+	switch (PropertyType.Type) {
 	case ExpressoType::Bool:
 		{
 			OutString = ResolveBoolean(SourceName, PropertyType.GetBool());

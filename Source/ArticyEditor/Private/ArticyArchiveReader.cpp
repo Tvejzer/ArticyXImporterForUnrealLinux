@@ -6,6 +6,7 @@
 #include "ArticyEditorModule.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+#include "HAL/PlatformFileManager.h"
 
 bool UArticyArchiveReader::OpenArchive(const FString& InArchiveFileName)
 {

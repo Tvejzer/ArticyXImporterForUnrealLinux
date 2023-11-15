@@ -5,6 +5,9 @@
 
 #include "ArticyRuntimeModule.h"
 #include "Internationalization/StringTableRegistry.h"
+#include "Misc/Paths.h"
+#include "HAL/PlatformFilemanager.h"
+#include "GenericPlatform/GenericPlatformFile.h"
 
 DEFINE_LOG_CATEGORY(LogArticyRuntime)
 

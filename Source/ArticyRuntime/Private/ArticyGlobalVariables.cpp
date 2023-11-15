@@ -13,7 +13,6 @@
 #include "ArticyAlternativeGlobalVariables.h"
 #include "AssetRegistry/AssetData.h"
 
-
 FArticyGvName::FArticyGvName(const FName FullVariableName)
 {
 	SetByFullName(FullVariableName);
@@ -119,7 +118,12 @@ UArticyGlobalVariables* UArticyGlobalVariables::GetDefault(const UObject* WorldC
 		auto world = GEngine->GetWorldFromContextObjectChecked(WorldContext);
 		ensureMsgf(world, TEXT("Getting world for GV cloning failed!"));
 
+#if ENGINE_MAJOR_VERSION >= 5
 		TObjectPtr<UArticyGlobalVariables> assetPtr = asset;
+#else
+		UArticyGlobalVariables* assetPtr = asset;
+#endif
+		
 		if(keepBetweenWorlds)
 		{
 			Clone = DuplicateObject<UArticyGlobalVariables>(assetPtr, Cast<UObject>(world->GetGameInstance()), TEXT("Persistent Runtime GV"));
@@ -202,7 +206,13 @@ UArticyGlobalVariables* UArticyGlobalVariables::GetRuntimeClone(const UObject* W
 
 	// If so, duplicate and add to root
 	UArticyGlobalVariables* NewClone = nullptr;
+
+#if ENGINE_MAJOR_VERSION >= 5
 	TObjectPtr<UArticyGlobalVariables> assetPtr = asset;
+#else
+	UArticyGlobalVariables* assetPtr = asset;
+#endif		
+	
 	if (keepBetweenWorlds)
 	{
 		FString NewName = TEXT("Persistent Runtime GV Clone of ") + Name;
