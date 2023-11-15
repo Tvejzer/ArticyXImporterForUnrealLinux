@@ -7,7 +7,8 @@
 #include "ArticyAsset.h"
 #include "ArticyBaseTypes.h"
 #include "ArticyPackage.h"
-
+#include "ArticyArchiveReader.h"
+#include "ArticyTexts.h"
 
 #include "PackagesImport.generated.h"
 

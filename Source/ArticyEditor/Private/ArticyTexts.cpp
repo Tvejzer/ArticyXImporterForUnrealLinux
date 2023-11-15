@@ -12,11 +12,14 @@ void FArticyTextDef::ImportFromJson(const TSharedPtr<FJsonValue>& Json)
 		return;
 
 	const TSharedPtr<FJsonObject> JsonObject = Json->AsObject();
+	
+#if ENGINE_MAJOR_VERSION >= 5
 	if (JsonObject->Values.IsEmpty())
 	{
 		Text = ConvertUnityMarkupToUnreal(Json->AsString());
 		return;
 	}
+#endif
 	
 	JSON_TRY_STRING(JsonObject, Text);
 	Text = ConvertUnityMarkupToUnreal(Text);

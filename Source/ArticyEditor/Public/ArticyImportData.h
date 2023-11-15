@@ -8,6 +8,7 @@
 #include "ObjectDefinitionsImport.h"
 #include "PackagesImport.h"
 #include "ArticyPackage.h"
+#include "ArticyArchiveReader.h"
 #include "ArticyImportData.generated.h"
 
 class UArticyImportData;

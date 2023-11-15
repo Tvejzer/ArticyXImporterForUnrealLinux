@@ -19,6 +19,7 @@
 #include "StringTableGenerator.h"
 #include "BuildToolParser/BuildToolParser.h"
 #include "Serialization/JsonSerializer.h"
+#include "HAL/PlatformFileManager.h"
 
 #define LOCTEXT_NAMESPACE "ArticyImportData"
 
@@ -536,8 +537,8 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 
 	ParentChildrenCache.Empty();
 
-	if (TSharedPtr<FJsonObject> GvObject;
-		Archive.FetchJson(
+	TSharedPtr<FJsonObject> GvObject;
+	if (Archive.FetchJson(
 			RootObject,
 			JSON_SECTION_GLOBALVARS,
 			Settings.GlobalVariablesHash,
@@ -549,8 +550,8 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	}
 
 	const TSharedPtr<FJsonObject> ObjectDefs = RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS);
-	if (TSharedPtr<FJsonObject> ObjTypes;
-		Archive.FetchJson(
+	TSharedPtr<FJsonObject> ObjTypes;
+	if (Archive.FetchJson(
 			RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS),
 			JSON_SUBSECTION_TYPES,
 			Settings.ObjectDefinitionsHash,
@@ -562,8 +563,8 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	}
 
 	const FString OldObjectDefintionsTextHash = Settings.ObjectDefinitionsTextHash;
-	if (TSharedPtr<FJsonObject> ObjTexts;
-		Archive.FetchJson(
+	TSharedPtr<FJsonObject> ObjTexts;
+	if (Archive.FetchJson(
 			RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS),
 			JSON_SUBSECTION_TEXTS,
 			Settings.ObjectDefinitionsTextHash,

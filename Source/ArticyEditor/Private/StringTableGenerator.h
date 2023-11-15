@@ -4,6 +4,9 @@
 //
 #pragma once
 
+#include "Containers/UnrealString.h"
+#include "Misc/Paths.h"
+
 /**
  * Holds a content string which can be written to a file, specified in the constructor.
  */
