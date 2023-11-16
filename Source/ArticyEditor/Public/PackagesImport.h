@@ -1,7 +1,7 @@
 //  
-// Copyright (c) articy Software GmbH & Co. KG. All rights reserved.  
- 
+// Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
 //
+
 #pragma once
 
 #include "ArticyAsset.h"
