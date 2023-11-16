@@ -1,6 +1,7 @@
 //  
-// Copyright (c) articy Software GmbH & Co. KG. All rights reserved.  
+// Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
 //
+
 #include "ArticyAlternativeGVFactory.h"
 #include "ArticyAlternativeGlobalVariables.h"
 
