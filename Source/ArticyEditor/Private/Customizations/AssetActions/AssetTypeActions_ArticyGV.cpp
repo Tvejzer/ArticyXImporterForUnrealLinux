@@ -1,6 +1,8 @@
+//  
+// Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
+//
 
 #include "Customizations/AssetActions/AssetTypeActions_ArticyGV.h"
-
 #include "Customizations/ArticyGVEditor.h"
 
 void FAssetTypeActions_ArticyGV::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)

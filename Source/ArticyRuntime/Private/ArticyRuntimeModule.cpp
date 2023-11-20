@@ -1,6 +1,5 @@
 //  
 // Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
- 
 //
 
 #include "ArticyRuntimeModule.h"
@@ -8,6 +7,7 @@
 #include "Misc/Paths.h"
 #include "HAL/PlatformFilemanager.h"
 #include "GenericPlatform/GenericPlatformFile.h"
+#include "Internationalization/Culture.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -31,17 +31,18 @@ void FArticyRuntimeModule::ShutdownModule()
 
 void FArticyRuntimeModule::LoadStringTables(bool)
 {
-#if WITH_EDITOR
-	IterateStringTables(FPaths::ProjectContentDir() / "ArticyContent/Generated", false);
-#endif
-
-	IterateStringTables(FPaths::ProjectContentDir() / "ArticyContent/Generated", true);
+	const FString& LangName = FInternationalization::Get().GetCurrentCulture()->GetTwoLetterISOLanguageName();
+	if (LangName.Len() > 0)
+	{
+		IterateStringTables(FPaths::ProjectContentDir() / "L10N" / LangName / "ArticyContent/Generated");
+	}
+	IterateStringTables(FPaths::ProjectContentDir() / "ArticyContent/Generated");
 }
 
-void FArticyRuntimeModule::IterateStringTables(const FString& DirectoryPath, bool Load) const
+void FArticyRuntimeModule::IterateStringTables(const FString& DirectoryPath) const
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-	
+
 	if (PlatformFile.DirectoryExists(*DirectoryPath))
 	{
 		TArray<FString> FoundFiles;
@@ -50,18 +51,12 @@ void FArticyRuntimeModule::IterateStringTables(const FString& DirectoryPath, boo
 		for (const FString& FilePath : FoundFiles)
 		{
 			FString StringTable = FPaths::GetBaseFilename(*FilePath, true);
-			if (Load)
-			{
-				FStringTableRegistry::Get().Internal_LocTableFromFile(
-					FName(StringTable),
-					StringTable,
-					"ArticyContent/Generated/" + StringTable + ".csv",
-					FPaths::ProjectContentDir());
-			}
-			else
-			{
-				FStringTableRegistry::Get().UnregisterStringTable(FName(StringTable));
-			}
+			FStringTableRegistry::Get().UnregisterStringTable(FName(StringTable));
+			FStringTableRegistry::Get().Internal_LocTableFromFile(
+				FName(StringTable),
+				StringTable,
+				StringTable + ".csv",
+				DirectoryPath);
 		}
 	}
 }

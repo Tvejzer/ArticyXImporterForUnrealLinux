@@ -9,10 +9,6 @@
 #include "ArticyBaseTypes.h"
 #include "Styling/SlateBrush.h"
 
-/**
- * 
- */
-
 class UArticyObject;
 
 namespace UserInterfaceHelperFunctions

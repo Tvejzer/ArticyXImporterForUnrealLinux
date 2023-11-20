@@ -2,7 +2,6 @@
 // Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
 //
 
-
 #include "DatabaseGenerator.h"
 #include "CodeGenerator.h"
 #include "ArticyDatabase.h"

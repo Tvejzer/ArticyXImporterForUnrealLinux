@@ -629,7 +629,26 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 				// Handle object defs
 				for(const auto Text : GetObjectDefs().GetTexts())
 				{
-					CsvOutput->Line(Text.Key, Text.Value.Content[TEXT("")].Text);
+					// Send localized data or key, depending on whether data is available
+					if (Text.Value.Content.Num() == 0)
+					{
+						CsvOutput->Line(Text.Key, Text.Key);
+					}
+					else
+					{
+						if (Text.Value.Content.Contains(language.Key))
+						{
+							// Specific language data
+							CsvOutput->Line(Text.Key, Text.Value.Content[language.Key].Text);
+						}
+						else
+						{
+							// Infer default from iterator
+							const auto Iterator = Text.Value.Content.CreateConstIterator();
+							const auto& Elem = *Iterator;
+							CsvOutput->Line(Text.Key, Elem.Value.Text);
+						}
+					}
 				}
 			});
 		}
@@ -696,7 +715,26 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 				// Handle object defs
 				for(const auto Text : GetPackageDefs().GetTexts(Package))
 				{
-					CsvOutput->Line(Text.Key, Text.Value.Content.IsEmpty() ? Text.Key : Text.Value.Content[TEXT("")].Text);
+					// Send localized data or key, depending on whether data is available
+					if (Text.Value.Content.Num() == 0)
+					{
+						CsvOutput->Line(Text.Key, Text.Key);
+					}
+					else
+					{
+						if (Text.Value.Content.Contains(language.Key))
+						{
+							// Specific language data
+							CsvOutput->Line(Text.Key, Text.Value.Content[language.Key].Text);
+						}
+						else
+						{
+							// Infer default from iterator
+							const auto Iterator = Text.Value.Content.CreateConstIterator();
+							const auto& Elem = *Iterator;
+							CsvOutput->Line(Text.Key, Elem.Value.Text);
+						}
+					}
 				}
 			});
 		}

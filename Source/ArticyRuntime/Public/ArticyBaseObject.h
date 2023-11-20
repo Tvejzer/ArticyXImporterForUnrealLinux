@@ -1,7 +1,7 @@
 //  
 // Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
- 
 //
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -33,7 +33,7 @@ public:
 
 	UArticyPrimitive* GetSubobject(FArticyId Id) const;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Articy")
 	FArticyType GetArticyType() const;
 
 	FArticyType ArticyType;

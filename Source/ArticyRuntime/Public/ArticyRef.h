@@ -1,16 +1,13 @@
 //  
 // Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
- 
 //
+
 #pragma once
 
 #include "ArticyBaseTypes.h"
 #include "ArticyObject.h"
 #include "ArticyRef.generated.h"
 
-/**
-*
-*/
 USTRUCT(BlueprintType)
 struct ARTICYRUNTIME_API FArticyRef
 {

@@ -7,9 +7,6 @@
 #include "CoreMinimal.h"
 #include "ArticyImportData.h"
 
-/**
- * 
- */
 enum EImportDataEnsureResult
 {
 	// found the import data in the asset registry

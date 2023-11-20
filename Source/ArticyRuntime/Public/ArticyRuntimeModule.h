@@ -23,5 +23,5 @@ public:
 	void LoadStringTables(bool);
 
 private:
-	void IterateStringTables(const FString& DirectoryPath, bool Load) const;
+	void IterateStringTables(const FString& DirectoryPath) const;
 };

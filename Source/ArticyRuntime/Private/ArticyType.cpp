@@ -1,5 +1,5 @@
 ﻿//  
-// Copyright (c) articy Software GmbH & Co. KG. All rights reserved.  
+// Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
 //
 
 #include "ArticyType.h"
@@ -105,15 +105,15 @@ void FArticyType::MergeChild(const FArticyType& Child)
 	{
 		TechnicalName = Child.TechnicalName;
 	}
-	if (!Child.EnumValues.IsEmpty())
+	if (Child.EnumValues.Num() > 0)
 	{
 		EnumValues = Child.EnumValues;
 	}
-	if (!Child.Features.IsEmpty())
+	if (Child.Features.Num() > 0)
 	{
 		Features = Child.Features;
 	}
-	if (!Child.Properties.IsEmpty())
+	if (Child.Properties.Num() > 0)
 	{
 		Properties = Child.Properties;
 	}
@@ -139,15 +139,15 @@ void FArticyType::MergeParent(const FArticyType& Parent)
 	{
 		TechnicalName = Parent.TechnicalName;
 	}
-	if (EnumValues.IsEmpty())
+	if (EnumValues.Num() == 0)
 	{
 		EnumValues = Parent.EnumValues;
 	}
-	if (Features.IsEmpty())
+	if (Features.Num() == 0)
 	{
 		Features = Parent.Features;
 	}
-	if (Properties.IsEmpty())
+	if (Properties.Num() == 0)
 	{
 		Properties = Parent.Properties;
 	}

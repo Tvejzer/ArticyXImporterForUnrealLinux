@@ -1,8 +1,6 @@
 //  
 // Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
- 
 //
-
 
 #include "ArticyFunctionLibrary.h"
 #include "ArticyObject.h"
