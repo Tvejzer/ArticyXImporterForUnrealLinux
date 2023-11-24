@@ -6,7 +6,7 @@
 
 FArticyEnumValueInfo FArticyType::GetEnumValue(int Value) const
 {
-	for (const auto EnumInfo : EnumValues)
+	for (const auto& EnumInfo : EnumValues)
 	{
 		if (EnumInfo.Value == Value)
 		{
@@ -18,7 +18,7 @@ FArticyEnumValueInfo FArticyType::GetEnumValue(int Value) const
 
 FArticyEnumValueInfo FArticyType::GetEnumValue(const FString& ValueName) const
 {
-	for (const auto EnumInfo : EnumValues)
+	for (const auto& EnumInfo : EnumValues)
 	{
 		if (EnumInfo.LocaKey_DisplayName.Equals(ValueName))
 		{
@@ -51,7 +51,7 @@ TArray<FArticyPropertyInfo> FArticyType::GetPropertiesInFeature(const FString& F
 
 FArticyPropertyInfo FArticyType::GetProperty(const FString& PropertyName) const
 {
-	for (const auto PropertyInfo : Properties)
+	for (const auto& PropertyInfo : Properties)
 	{
 		if (PropertyInfo.LocaKey_DisplayName.Equals(PropertyName))
 		{

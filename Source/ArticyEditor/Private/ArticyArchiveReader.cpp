@@ -189,12 +189,12 @@ bool UArticyArchiveReader::ReadFileData()
 			uint8* Filename = new uint8[LengthOfName];
 			if (!FileHandle->Read(Filename, LengthOfName))
 			{
-				delete Filename;
+				delete[] Filename;
 				delete FileHandle;
 				return false;
 			}
 			const FString& FilenameString = ArchiveBytesToString(Filename, LengthOfName);
-			delete Filename;
+			delete[] Filename;
 		
 			// Store in the output struct
 			FArticyArchiveFileData FileEntry;

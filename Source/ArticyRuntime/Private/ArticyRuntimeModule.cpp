@@ -7,6 +7,7 @@
 #include "Misc/Paths.h"
 #include "HAL/PlatformFilemanager.h"
 #include "GenericPlatform/GenericPlatformFile.h"
+#include "Internationalization/Internationalization.h"
 #include "Internationalization/Culture.h"
 
 #if WITH_EDITOR
