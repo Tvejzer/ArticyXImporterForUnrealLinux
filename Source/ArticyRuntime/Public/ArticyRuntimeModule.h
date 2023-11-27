@@ -24,4 +24,5 @@ public:
 
 private:
 	void IterateStringTables(const FString& DirectoryPath) const;
+	void OnCultureChanged();
 };

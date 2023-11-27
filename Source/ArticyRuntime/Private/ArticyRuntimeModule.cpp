@@ -23,11 +23,17 @@ void FArticyRuntimeModule::StartupModule()
 #endif
 
 	LoadStringTables(false);
+	FInternationalization::Get().OnCultureChanged().AddRaw(this, &FArticyRuntimeModule::OnCultureChanged);
 }
 
 void FArticyRuntimeModule::ShutdownModule()
 {
+	FInternationalization::Get().OnCultureChanged().RemoveAll(this);
+}
 
+void FArticyRuntimeModule::OnCultureChanged()
+{
+	LoadStringTables(false);
 }
 
 void FArticyRuntimeModule::LoadStringTables(bool)

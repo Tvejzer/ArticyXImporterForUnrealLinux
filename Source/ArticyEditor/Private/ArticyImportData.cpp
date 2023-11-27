@@ -626,15 +626,13 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		{
 			StringTableGenerator(TEXT("ARTICY"), language.Key, [&](StringTableGenerator* CsvOutput)
 			{
+				int Counter = 0;
+
 				// Handle object defs
 				for(const auto Text : GetObjectDefs().GetTexts())
 				{
 					// Send localized data or key, depending on whether data is available
-					if (Text.Value.Content.Num() == 0)
-					{
-						CsvOutput->Line(Text.Key, Text.Key);
-					}
-					else
+					if (Text.Value.Content.Num() > 0)
 					{
 						if (Text.Value.Content.Contains(language.Key))
 						{
@@ -648,8 +646,11 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 							const auto& Elem = *Iterator;
 							CsvOutput->Line(Text.Key, Elem.Value.Text);
 						}
+						Counter++;
 					}
 				}
+
+				return Counter > 0;
 			});
 		}
 	}
@@ -712,15 +713,13 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 			StringTableGenerator(StringTableFileName, language.Key,
 				[&](StringTableGenerator* CsvOutput)
 			{
+				int Counter = 0;
+
 				// Handle object defs
 				for(const auto Text : GetPackageDefs().GetTexts(Package))
 				{
 					// Send localized data or key, depending on whether data is available
-					if (Text.Value.Content.Num() == 0)
-					{
-						CsvOutput->Line(Text.Key, Text.Key);
-					}
-					else
+					if (Text.Value.Content.Num() > 0)
 					{
 						if (Text.Value.Content.Contains(language.Key))
 						{
@@ -734,8 +733,11 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 							const auto& Elem = *Iterator;
 							CsvOutput->Line(Text.Key, Elem.Value.Text);
 						}
+						Counter++;
 					}
 				}
+
+				return Counter > 0;
 			});
 		}
 	}

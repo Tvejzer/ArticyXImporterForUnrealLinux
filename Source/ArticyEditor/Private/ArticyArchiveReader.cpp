@@ -218,19 +218,16 @@ bool UArticyArchiveReader::ReadFileData()
 
 FString UArticyArchiveReader::ArchiveBytesToString(const uint8* In, int32 Count)
 {
-	FString Result;
-	Result.Empty(Count);
-
-	// Do a standard byte to string conversion (not Unreal style)
-	while (Count)
+	if (In == nullptr || Count <= 0)
 	{
-		const int16 Value = *In;
-		Result += static_cast<TCHAR>(Value);
-
-		++In;
-		Count--;
+		return FString();
 	}
-	return Result;
+
+	// Convert UTF-8 bytes to TCHARs
+	FUTF8ToTCHAR UTF8ToTCHAR(reinterpret_cast<const ANSICHAR*>(In), Count);
+
+	// Create FString from TCHARs
+	return FString(UTF8ToTCHAR.Length(), UTF8ToTCHAR.Get());
 }
 
 bool UArticyArchiveReader::FetchJson(

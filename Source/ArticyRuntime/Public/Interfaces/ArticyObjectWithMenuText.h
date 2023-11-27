@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ArticyObjectWith_Base.h"
+#include "ArticyObjectWithText.h"
 #include "ArticyTextExtension.h"
 #include "ArticyObjectWithMenuText.generated.h"
 
@@ -43,8 +44,8 @@ public:
 			return ResolveText(SourceString);
 		}
 
-		// By default, return the key
-		return ResolveText(Key);
+		// By default, return ...
+		return FText::FromString("...");
 	}
 
 	virtual const FText GetMenuText() const

@@ -66,8 +66,10 @@ StringTableGenerator::StringTableGenerator(const FString& TableName, const FStri
 	Path += TEXT(".csv");
 	
 	Line("Key", "SourceString");
+	bool bContentWritten = false;
 	if(ensure(!std::is_null_pointer<Lambda>::value))
-		ContentGenerator(this);
+		bContentWritten = ContentGenerator(this);
 
-	WriteToFile();
+	if (bContentWritten)
+		WriteToFile();
 }
