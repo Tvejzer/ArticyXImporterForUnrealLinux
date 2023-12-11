@@ -316,6 +316,21 @@ FString ConvertUnityMarkupToUnreal(const FString& Input)
 	// Create string
 	FString result = strings;//.ToString();
 
+	// Static map for replacing HTML entities
+	static TMap<FString, FString> replacements = {
+		{TEXT("&lt;"), TEXT("<")},
+		{TEXT("&gt;"), TEXT(">")},
+		{TEXT("&quot;"), TEXT("\"")},
+		{TEXT("&apos;"), TEXT("\"")}
+	// Add more replacements here if needed
+	};
+
+	// Iterate over the map and replace each occurrence in the FString
+	for (const TPair<FString, FString>& pair : replacements)
+	{
+		result = result.Replace(*pair.Key, *pair.Value);
+	}
+
 	// Clean memory
 	// TODO - see above about old unreal vers
 	//delete buffer;
