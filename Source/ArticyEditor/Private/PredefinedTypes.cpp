@@ -279,6 +279,12 @@ FString ConvertUnityMarkupToUnreal(const FString& Input)
 			}
 		}
 		else {
+			if (currentTags.Num() == 0)
+			{
+				// Syntax issue, revert to original
+				return Input;
+			}
+
 			// Remove our last tag
 			auto popped = currentTags.Pop();
 
