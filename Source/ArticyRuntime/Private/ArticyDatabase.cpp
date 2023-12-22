@@ -120,7 +120,7 @@ void UArticyDatabase::Init()
 
 UArticyDatabase* UArticyDatabase::Get(const UObject* WorldContext)
 {
-	bool bKeepBetweenWorlds = UArticyPluginSettings::Get()->bKeepDatabaseBetweenWorlds;
+	bool bKeepBetweenWorlds = UArticyPluginSettings::Get()->bKeepDatabaseBetweenWorlds || WorldContext->GetWorld()->IsPartitionedWorld();;
 
 	if(bKeepBetweenWorlds && PersistentClone.IsValid())
 		return PersistentClone.Get();
