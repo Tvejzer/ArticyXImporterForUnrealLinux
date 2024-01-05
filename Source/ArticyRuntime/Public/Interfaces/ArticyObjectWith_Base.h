@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ArticyReflectable.h"
+#include "ArticyTextExtension.h"
 #include "ArticyObjectWith_Base.generated.h"
 
 UINTERFACE(MinimalAPI, meta=(CannotImplementInterfaceInBlueprint))
@@ -43,5 +44,40 @@ protected:
 
 		static PropType Empty;
 		return Empty;
+	}
+
+	FText GetStringText(const FName& PropName, const FText* BackupText = nullptr)
+	{
+		FText& Key = GetProperty<FText>(PropName);
+		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
+
+		// Look up entry in specified string table
+		TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
+		if (!TableName.IsSet())
+		{
+			TableName = TEXT("ARTICY");
+		}
+		const FText SourceString = FText::FromStringTable(
+			FName(TableName.GetValue()),
+			Key.ToString(),
+			EStringTableLoadingPolicy::FindOrFullyLoad);
+		const FString Decoded = SourceString.ToString();
+		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
+		{
+			return ResolveText(SourceString);
+		}
+
+		if (BackupText)
+		{
+			return *BackupText;
+		}
+
+		// By default, return via the key
+		return ResolveText(Key);
+	}
+
+	virtual FText ResolveText(FText SourceText) const
+	{
+		return UArticyTextExtension::Get()->Resolve(SourceText);
 	}
 };

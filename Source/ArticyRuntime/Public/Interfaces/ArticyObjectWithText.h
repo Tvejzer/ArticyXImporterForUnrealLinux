@@ -29,27 +29,7 @@ public:
 	virtual FText GetText()
 	{
 		static const auto PropName = FName("Text");
-		FText& Key = GetProperty<FText>(PropName);
-		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
-
-		// Look up entry in specified string table
-		TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
-		if (!TableName.IsSet())
-		{
-			TableName = TEXT("ARTICY");
-		}
-		const FText SourceString = FText::FromStringTable(
-			FName(TableName.GetValue()),
-			Key.ToString(),
-			EStringTableLoadingPolicy::FindOrFullyLoad);
-		const FString Decoded = SourceString.ToString();
-		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-		{
-			return ResolveText(SourceString);
-		}
-
-		// By default, return via the key
-		return ResolveText(Key);
+		return GetStringText(PropName);
 	}
 
 	virtual FText GetText() const
@@ -110,13 +90,5 @@ public:
 	virtual USoundWave* GetVOAsset() const
 	{
 		return const_cast<IArticyObjectWithText*>(this)->GetVOAsset();
-	}
-
-	//---------------------------------------------------------------------------//
-
-protected:
-	virtual FText ResolveText(FText SourceText) const
-	{
-		return UArticyTextExtension::Get()->Resolve(SourceText);
 	}
 };
