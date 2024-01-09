@@ -3,6 +3,7 @@
 - New Features
 	- Maintain data clones across world partitions
 	- Allow escaping of rich text markup
+	- Importing of voice over assets
 - Changes:
 	- Clean up removed classes from generated code
 - Fixes:
