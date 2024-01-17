@@ -3,6 +3,7 @@
 //
 
 #include "ArticyType.h"
+#include "ArticyHelpers.h"
 
 FArticyEnumValueInfo FArticyType::GetEnumValue(int Value) const
 {
@@ -63,26 +64,7 @@ FArticyPropertyInfo FArticyType::GetProperty(const FString& PropertyName) const
 
 FString FArticyType::LocalizeString(const FString& Input)
 {
-	const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
-
-	// Look up entry in specified string table
-	TOptional<FString> TableName = FTextInspector::GetNamespace(FText::FromString(Input));
-	if (!TableName.IsSet())
-	{
-		TableName = TEXT("ARTICY");
-	}
-	const FText SourceString = FText::FromStringTable(
-		FName(TableName.GetValue()),
-		Input,
-		EStringTableLoadingPolicy::FindOrFullyLoad);
-	const FString Decoded = SourceString.ToString();
-	if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-	{
-		return SourceString.ToString();
-	}
-
-	// By default, return input
-	return Input;
+	return ArticyHelpers::LocalizeString(FText::FromString(Input)).ToString();
 }
 
 void FArticyType::MergeChild(const FArticyType& Child)
