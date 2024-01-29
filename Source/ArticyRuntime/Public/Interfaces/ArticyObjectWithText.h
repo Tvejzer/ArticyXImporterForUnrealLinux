@@ -29,7 +29,7 @@ public:
 	virtual FText GetText()
 	{
 		static const auto PropName = FName("Text");
-		return GetStringText(PropName);
+		return GetStringText(Cast<UObject>(this), PropName);
 	}
 
 	virtual FText GetText() const
@@ -67,11 +67,12 @@ public:
 		const FString Decoded = SourceString.ToString();
 		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
 		{
-			AssetId = FArticyId{ ResolveText(SourceString).ToString() };
+			AssetId = FArticyId{ ResolveText(WorldContext, &SourceString).ToString() };
 		}
 		else
 		{
-			AssetId = FArticyId{ ResolveText(FText::FromString(Key.ToString() + ".VOAsset")).ToString() };
+			const auto& AssetString = FText::FromString(Key.ToString() + ".VOAsset");
+			AssetId = FArticyId{ ResolveText(WorldContext, &AssetString).ToString() };
 		}
 
 		const UArticyDatabase* Database = UArticyDatabase::Get(WorldContext);
@@ -92,8 +93,8 @@ public:
 		return const_cast<IArticyObjectWithText*>(this)->GetVOAsset();
 	}
 
-	virtual FText ResolveText(FText SourceText)
+	virtual FText ResolveText(UObject* Outer, const FText* SourceText)
 	{
-		return ArticyHelpers::ResolveText(SourceText);
+		return ArticyHelpers::ResolveText(Outer, SourceText);
 	}
 };

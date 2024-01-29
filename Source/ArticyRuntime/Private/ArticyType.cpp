@@ -29,9 +29,9 @@ FArticyEnumValueInfo FArticyType::GetEnumValue(const FString& ValueName) const
 	return {};
 }
 
-FString FArticyType::GetFeatureDisplayName(const FString& FeatureName) const
+FString FArticyType::GetFeatureDisplayName(UObject* Outer, const FString& FeatureName) const
 {
-	return LocalizeString(FeatureName);
+	return LocalizeString(Outer, FeatureName);
 }
 
 FString FArticyType::GetFeatureDisplayNameLocaKey(const FString& FeatureName) const
@@ -62,9 +62,14 @@ FArticyPropertyInfo FArticyType::GetProperty(const FString& PropertyName) const
 	return {};
 }
 
-FString FArticyType::LocalizeString(const FString& Input)
+FString FArticyType::GetDisplayName(UObject* Outer)
 {
-	return ArticyHelpers::LocalizeString(FText::FromString(Input)).ToString();
+	return LocalizeString(Outer, LocaKey_DisplayName);
+}
+
+FString FArticyType::LocalizeString(UObject* Outer, const FString& Input)
+{
+	return ArticyHelpers::LocalizeString(Outer, FText::FromString(Input)).ToString();
 }
 
 void FArticyType::MergeChild(const FArticyType& Child)
@@ -74,10 +79,6 @@ void FArticyType::MergeChild(const FArticyType& Child)
 	if (!Child.CPPType.IsEmpty())
 	{
 		CPPType = Child.CPPType;
-	}
-	if (!Child.DisplayName.IsEmpty())
-	{
-		DisplayName = Child.DisplayName;
 	}
 	if (!Child.LocaKey_DisplayName.IsEmpty())
 	{
@@ -108,10 +109,6 @@ void FArticyType::MergeParent(const FArticyType& Parent)
 	if (CPPType.IsEmpty())
 	{
 		CPPType = Parent.CPPType;
-	}
-	if (DisplayName.IsEmpty())
-	{
-		DisplayName = Parent.DisplayName;
 	}
 	if (LocaKey_DisplayName.IsEmpty())
 	{

@@ -25,7 +25,7 @@ public:
 	virtual FText GetDisplayName()
 	{
 		static const auto PropName = FName("DisplayName");
-		return GetStringText(PropName);
+		return GetStringText(Cast<UObject>(this), PropName);
 	}
 
 	virtual const FText GetDisplayName() const

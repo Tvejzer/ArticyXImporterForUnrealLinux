@@ -168,12 +168,12 @@ namespace ArticyHelpers
 		return FLinearColor{ static_cast<float>(R), static_cast<float>(G), static_cast<float>(B), static_cast<float>(A) };
 	}
 
-	inline FText ResolveText(FText SourceText)
+	inline FText ResolveText(UObject* Outer, const FText* SourceText)
 	{
-		return UArticyTextExtension::Get()->Resolve(SourceText);
+		return UArticyTextExtension::Get()->Resolve(Outer, SourceText);
 	}
 
-	inline FText LocalizeString(const FText& Key, bool ResolveTextExtension = true, const FText* BackupText = nullptr)
+	inline FText LocalizeString(UObject* Outer, const FText& Key, bool ResolveTextExtension = true, const FText* BackupText = nullptr)
 	{
 		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
 
@@ -192,7 +192,7 @@ namespace ArticyHelpers
 		{
 			if (ResolveTextExtension)
 			{
-				return ResolveText(SourceString);
+				return ResolveText(Outer, &SourceString);
 			}
 			return SourceString;
 		}
@@ -205,7 +205,7 @@ namespace ArticyHelpers
 		// By default, return via the key
 		if (ResolveTextExtension)
 		{
-			return ResolveText(Key);
+			return ResolveText(Outer, &Key);
 		}
 		return Key;
 	}

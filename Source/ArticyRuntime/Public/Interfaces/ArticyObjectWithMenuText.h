@@ -26,7 +26,7 @@ public:
 	{
 		static const auto PropName = FName("MenuText");
 		static const auto BackupText = FText::FromString("...");
-		return GetStringText(PropName, &BackupText);
+		return GetStringText(Cast<UObject>(this), PropName, &BackupText);
 	}
 
 	virtual const FText GetMenuText() const

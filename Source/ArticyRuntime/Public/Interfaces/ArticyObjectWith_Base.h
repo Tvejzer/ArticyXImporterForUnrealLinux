@@ -46,10 +46,10 @@ protected:
 		return Empty;
 	}
 
-	FText GetStringText(const FName& PropName, const FText* BackupText = nullptr)
+	FText GetStringText(UObject* Outer, const FName& PropName, const FText* BackupText = nullptr)
 	{
 		FText& Key = GetProperty<FText>(PropName);
-		return ArticyHelpers::LocalizeString(Key, true, BackupText);
+		return ArticyHelpers::LocalizeString(Outer, Key, true, BackupText);
 	}
 
 };
