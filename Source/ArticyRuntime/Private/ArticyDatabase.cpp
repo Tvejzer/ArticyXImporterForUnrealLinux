@@ -138,7 +138,7 @@ UArticyDatabase* UArticyDatabase::Get(const UObject* WorldContext)
 	if(!clone.IsValid())
 	{
 		//clone not valid, create a new one
-		UE_LOG(LogTemp, Warning, TEXT("Cloning ArticyDatabase."))
+		UE_LOG(LogArticyRuntime, Log, TEXT("Cloning ArticyDatabase."))
 
 		//get the original asset to clone from
 		auto asset = GetOriginal();
