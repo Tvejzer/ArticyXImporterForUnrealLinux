@@ -6,6 +6,7 @@
 #include "ArticyDatabase.h"
 #include "ArticyGlobalVariables.h"
 #include "ArticyTypeSystem.h"
+#include "ArticyHelpers.h"
 
 UArticyTextExtension* UArticyTextExtension::Get()
 {
@@ -418,26 +419,8 @@ FString UArticyTextExtension::ResolveBoolean(const FString &SourceName, const bo
 
 FString UArticyTextExtension::LocalizeString(const FString& Input) const
 {
-	const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
-
-	// Look up entry in specified string table
-	TOptional<FString> TableName = FTextInspector::GetNamespace(FText::FromString(Input));
-	if (!TableName.IsSet())
-	{
-		TableName = TEXT("ARTICY");
-	}
-	const FText SourceString = FText::FromStringTable(
-		FName(TableName.GetValue()),
-		Input,
-		EStringTableLoadingPolicy::FindOrFullyLoad);
-	const FString Decoded = SourceString.ToString();
-	if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-	{
-		return SourceString.ToString();
-	}
-
-	// By default, return empty
-	return TEXT("");
+	const FText Placeholder = FText::FromString(TEXT(""));
+	return ArticyHelpers::LocalizeString(FText::FromString(Input), false, &Placeholder).ToString();
 }
 
 void UArticyTextExtension::SplitInstance(const FString& InString, FString& OutName, FString& OutInstanceNumber)

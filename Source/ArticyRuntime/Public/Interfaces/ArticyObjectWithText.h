@@ -91,4 +91,9 @@ public:
 	{
 		return const_cast<IArticyObjectWithText*>(this)->GetVOAsset();
 	}
+
+	virtual FText ResolveText(FText SourceText)
+	{
+		return ArticyHelpers::ResolveText(SourceText);
+	}
 };
