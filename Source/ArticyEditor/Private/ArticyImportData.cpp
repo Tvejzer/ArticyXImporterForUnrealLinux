@@ -809,6 +809,7 @@ void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const F
 
 		// Check if the asset already exists in the asset registry
 		FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FName(*PackageFileName));
+
 		if (AssetData.IsValid())
 		{
 			// Check the timestamp to determine if the asset needs updating
@@ -818,11 +819,16 @@ void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const F
 			UObject* Asset = CurrentAssetData.GetAsset();
 			if (Asset && Asset->GetOutermost())
 			{
-				const FDateTime AssetTimeStamp = IFileManager::Get().GetTimeStamp(*Asset->GetOutermost()->FileName.ToString());
-				if (SourceTimeStamp <= AssetTimeStamp)
-				{
-					// The asset is up-to-date; skip re-importing
-					continue;
+				FString PackagePathString;
+				if (FPackageName::TryConvertLongPackageNameToFilename(Asset->GetOutermost()->GetName(), PackagePathString)) {
+					FString FullFilePath = PackagePathString + TEXT(".uasset");
+
+					const FDateTime AssetTimeStamp = IFileManager::Get().GetTimeStamp(*FullFilePath);
+					if (SourceTimeStamp <= AssetTimeStamp)
+					{
+						// The asset is up-to-date; skip re-importing
+						continue;
+					}
 				}
 			}
 		}
