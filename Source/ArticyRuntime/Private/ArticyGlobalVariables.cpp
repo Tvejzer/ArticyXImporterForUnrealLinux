@@ -111,7 +111,7 @@ UArticyGlobalVariables* UArticyGlobalVariables::GetDefault(const UObject* WorldC
 		if(!asset)
 			return nullptr;
 
-		UE_LOG(LogTemp, Warning, TEXT("Cloning GVs."));
+		UE_LOG(LogArticyRuntime, Log, TEXT("Cloning GVs."));
 
 		auto world = GEngine->GetWorldFromContextObjectChecked(WorldContext);
 		ensureMsgf(world, TEXT("Getting world for GV cloning failed!"));
