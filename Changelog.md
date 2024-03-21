@@ -1,4 +1,10 @@
-## Unreal Importer 1.1.0 Changelog : 
+## Unreal Importer 1.0.2 Changelog : 
+
+- Fixes:
+	- Minor compatibility issues
+	- Avoid deprecated functionality
+
+## Unreal Importer 1.0.1 Changelog : 
 
 - New Features
 	- Maintain data clones across world partitions
