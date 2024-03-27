@@ -634,11 +634,12 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	// Create string tables
 	if (!OldObjectDefintionsTextHash.Equals(Settings.ObjectDefinitionsTextHash))
 	{
+		const auto& ObjectDefsText = GetObjectDefs().GetTexts();
 		for (const auto& Language : Languages.Languages)
 		{
 			StringTableGenerator(TEXT("ARTICY"), Language.Key, [&](StringTableGenerator* CsvOutput)
 			{
-				return ProcessStrings(CsvOutput, Language);
+				return ProcessStrings(CsvOutput, ObjectDefsText, Language);
 			});
 		}
 	}
@@ -701,7 +702,7 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 			StringTableGenerator(StringTableFileName, Language.Key,
 				[&](StringTableGenerator* CsvOutput)
 			{
-				return ProcessStrings(CsvOutput, Language);
+				return ProcessStrings(CsvOutput, Package.GetTexts(), Language);
 			});
 		}
 	}
@@ -747,12 +748,12 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	}
 }
 
-int UArticyImportData::ProcessStrings(StringTableGenerator* CsvOutput, const TPair<FString, FArticyLanguageDef>& Language)
+int UArticyImportData::ProcessStrings(StringTableGenerator* CsvOutput, const TMap<FString, FArticyTexts>& Data, const TPair<FString, FArticyLanguageDef>& Language)
 {
 	int Counter = 0;
 
 	// Handle object defs
-	for (const auto& Text : GetObjectDefs().GetTexts())
+	for (const auto& Text : Data)
 	{
 		// Send localized data or key, depending on whether data is available
 		if (Text.Value.Content.Num() > 0)
