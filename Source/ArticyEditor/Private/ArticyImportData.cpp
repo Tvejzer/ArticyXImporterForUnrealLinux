@@ -491,11 +491,11 @@ void UArticyImportData::PostImport()
 	ArticyEditorModule.OnImportFinished.Broadcast();
 }
 
-void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject> RootObject)
+bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject> RootObject)
 {
 	// Abort if we will have broken packages
 	if (!PackageDefs.ValidateImport(Archive, &RootObject->GetArrayField(JSON_SECTION_PACKAGES)))
-		return;
+		return false;
 
 	// Record old script fragments hash
 	const FString& OldScriptFragmentsHash = Settings.ScriptFragmentsHash;
@@ -745,6 +745,8 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		CodeGenerator::GenerateAssets(this);
 		PostImport();
 	}
+
+	return true;
 }
 
 int UArticyImportData::ProcessStrings(StringTableGenerator* CsvOutput, const TPair<FString, FArticyLanguageDef>& Language)
