@@ -457,6 +457,6 @@ private:
 	TMap<FArticyId, FArticyIdArray> ParentChildrenCache;
 
 	void ImportAudioAssets(const FString& BaseContentDir, const FString& SubDir);
-	int ProcessStrings(StringTableGenerator* CsvOutput, const TPair<FString, FArticyLanguageDef>& Language);
+	int ProcessStrings(StringTableGenerator* CsvOutput, const TMap<FString, FArticyTexts>& Data, const TPair<FString, FArticyLanguageDef>& Language);
 };
 
