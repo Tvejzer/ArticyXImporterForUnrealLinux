@@ -40,21 +40,19 @@ void ArticyLocalizerGenerator::GenerateCode(const UArticyImportData* Data, FStri
 			{
 				header->Line(TEXT("const FString& LangName = FInternationalization::Get().GetCurrentCulture()->GetTwoLetterISOLanguageName()"), true);
 				header->Line(TEXT("if (!bListenerSet) {"));
-				header->Line(FString::Printf("FInternationalization::Get().OnCultureChanged().AddRaw(this, &%s::Reload)", *type), true, true);
-				header->Line(TEXT("bListenerSet = true"), true);
+				header->Line(FString::Printf(TEXT("FInternationalization::Get().OnCultureChanged().AddUObject(this, &%s::Reload)"), *type), true, true, 1);
+				header->Line(TEXT("bListenerSet = true"), true, true, 1);
 				header->Line(TEXT("}"));
 
 				FString L10NDir = FPaths::ProjectContentDir() / "L10N";
 				if (FPaths::DirectoryExists(L10NDir))
 				{
-					IFileManager& FileManager = IFileManager::Get();
-					TArray<FString> FoundLanguageDirectories;
-					FileManager.FindFiles(FoundLanguageDirectories, *L10NDir, true, false);
-
-					for (const FString& LangName : FoundLanguageDirectories)
+					for (const auto Language : Data->Languages.Languages)
 					{
-						FString LangPath = L10NDir / LangName / "ArticyContent/Generated";
+						FString LangPath = L10NDir / Language.Key / "ArticyContent/Generated";
+						header->Line(FString::Printf(TEXT("if (LangName.Equals(\"%s\")) {"), *Language.Key));
 						IterateStringTables(header, LangPath);
+						header->Line(TEXT("}"));
 					}
 				}
 				IterateStringTables(header, FPaths::ProjectContentDir() / "ArticyContent/Generated");
@@ -72,11 +70,13 @@ void ArticyLocalizerGenerator::IterateStringTables(CodeFileGenerator* Header, co
 		TArray<FString> FoundFiles;
 		PlatformFile.FindFiles(FoundFiles, *DirectoryPath, TEXT(".csv"));
 
+		FString RelPath = DirectoryPath.Replace(*FPaths::ProjectContentDir(), TEXT(""), ESearchCase::IgnoreCase);
+
 		for (const FString& FilePath : FoundFiles)
 		{
 			FString StringTable = FPaths::GetBaseFilename(*FilePath, true);
 			Header->Line(FString::Printf(TEXT("FStringTableRegistry::Get().UnregisterStringTable(FName(\"%s\"))"), *StringTable), true);
-			Header->Line(FString::Printf(TEXT("LOCTABLE_FROMFILE_GAME(\"%s\", \"%s\", \"%s/%s.csv\")"), *StringTable, *StringTable, *DirectoryPath, *StringTable), true);
+			Header->Line(FString::Printf(TEXT("LOCTABLE_FROMFILE_GAME(\"%s\", \"%s\", \"%s/%s.csv\")"), *StringTable, *StringTable, *RelPath, *StringTable), true);
 		}
 	}
 }

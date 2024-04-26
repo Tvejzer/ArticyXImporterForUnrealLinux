@@ -16,6 +16,7 @@
 #include "Dom/JsonObject.h"
 #include "ArticyTextExtension.h"
 #include "ArticyRuntimeModule.h"
+#include "ArticyLocalizerSystem.h"
 
 namespace ArticyHelpers
 {
@@ -170,12 +171,14 @@ namespace ArticyHelpers
 
 	inline FText ResolveText(UObject* Outer, const FText* SourceText)
 	{
-		return UArticyTextExtension::Get()->Resolve(Outer, SourceText);
+		UArticyLocalizerSystem* ArticyLocalizerSystem = UArticyLocalizerSystem::Get();
+		return ArticyLocalizerSystem->ResolveText(Outer, SourceText);
 	}
 
 	inline FText LocalizeString(UObject* Outer, const FText& Key, bool ResolveTextExtension = true, const FText* BackupText = nullptr)
 	{
-
+		UArticyLocalizerSystem* ArticyLocalizerSystem = UArticyLocalizerSystem::Get();
+		return ArticyLocalizerSystem->LocalizeString(Outer, Key, ResolveTextExtension, BackupText);
 	}
 
 }

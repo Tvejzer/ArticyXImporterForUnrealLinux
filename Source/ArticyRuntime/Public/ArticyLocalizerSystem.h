@@ -6,7 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "ArticyType.h"
-#include "ArticyHelpers.h"
+#include "ArticyTextExtension.h"
 #include "Internationalization/StringTableRegistry.h"
 #include "ArticyLocalizerSystem.generated.h"
 
@@ -16,9 +16,43 @@ class ARTICYRUNTIME_API UArticyLocalizerSystem : public UObject
 	GENERATED_BODY()
 
 public:
-	static UArticyLocalizerSystem* Get();
+	static UArticyLocalizerSystem* Get()
+	{
+		static TWeakObjectPtr<UArticyLocalizerSystem> ArticyLocalizerSystem;
+		if (ArticyLocalizerSystem.IsValid())
+		{
+			return ArticyLocalizerSystem.Get();
+		}
+
+		UClass* ParentClass = UArticyLocalizerSystem::StaticClass(); // Use your actual parent class here
+
+		// Iterate over all classes
+		for (TObjectIterator<UClass> It; It; ++It)
+		{
+			UClass* Class = *It;
+			// Check if the class is derived from the parent class
+			if (Class->IsChildOf(ParentClass) && Class != ParentClass)
+			{
+				// Create an instance of the found subclass
+				UArticyLocalizerSystem* NewLocalizerSystem = NewObject<UArticyLocalizerSystem>(GetTransientPackage(), Class);
+
+				// Assign the instance to the TWeakObjectPtr
+				ArticyLocalizerSystem = NewLocalizerSystem;
+
+				return ArticyLocalizerSystem.Get();
+			}
+		}
+
+		// Handle case where no subclass is found
+		return nullptr;
+	}
 
 	virtual void Reload() {};
+
+	inline FText ResolveText(UObject* Outer, const FText* SourceText)
+	{
+		return UArticyTextExtension::Get()->Resolve(Outer, SourceText);
+	}
 
 	inline FText LocalizeString(UObject* Outer, const FText& Key, bool ResolveTextExtension = true, const FText* BackupText = nullptr)
 	{
@@ -44,7 +78,7 @@ public:
 		{
 			if (ResolveTextExtension)
 			{
-				return ArticyHelpers::ResolveText(Outer, &SourceString);
+				return ResolveText(Outer, &SourceString);
 			}
 			return SourceString;
 		}
@@ -57,12 +91,10 @@ public:
 		// By default, return via the key
 		if (ResolveTextExtension)
 		{
-			return ArticyHelpers::ResolveText(Outer, &Key);
+			return ResolveText(Outer, &Key);
 		}
 		return Key;
 	}
-	FArticyType GetArticyType(const FString& TypeName) const;
-	TMap<FString, FArticyType> Types;
 
 protected:
 	bool bDataLoaded = false;

@@ -417,6 +417,9 @@ public:
 
 	void SetInitialImportComplete() { bHasCachedVersion = true; }
 	
+	UPROPERTY(VisibleAnywhere, Category = "ImportData")
+	FArticyLanguages Languages;
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Articy")
@@ -444,8 +447,6 @@ private:
 	FAIDUserMethods UserMethods;
 	UPROPERTY(VisibleAnywhere, Category="ImportData")
 	FADIHierarchy Hierarchy;
-	UPROPERTY(VisibleAnywhere, Category="ImportData")
-	FArticyLanguages Languages;
 
 	UPROPERTY(VisibleAnywhere, Category="ImportData")
 	TSet<FArticyExpressoFragment> ScriptFragments;
