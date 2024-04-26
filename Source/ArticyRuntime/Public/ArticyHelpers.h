@@ -175,39 +175,7 @@ namespace ArticyHelpers
 
 	inline FText LocalizeString(UObject* Outer, const FText& Key, bool ResolveTextExtension = true, const FText* BackupText = nullptr)
 	{
-		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
 
-		// Look up entry in specified string table
-		TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
-		if (!TableName.IsSet())
-		{
-			TableName = TEXT("ARTICY");
-		}
-		const FText SourceString = FText::FromStringTable(
-			FName(TableName.GetValue()),
-			Key.ToString(),
-			EStringTableLoadingPolicy::FindOrFullyLoad);
-		const FString Decoded = SourceString.ToString();
-		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-		{
-			if (ResolveTextExtension)
-			{
-				return ResolveText(Outer, &SourceString);
-			}
-			return SourceString;
-		}
-
-		if (BackupText)
-		{
-			return *BackupText;
-		}
-
-		// By default, return via the key
-		if (ResolveTextExtension)
-		{
-			return ResolveText(Outer, &Key);
-		}
-		return Key;
 	}
 
 }
