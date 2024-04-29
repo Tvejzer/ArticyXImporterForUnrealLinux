@@ -1,3 +1,9 @@
+## Unreal Importer 1.0.3 Changelog : 
+
+- Changes:
+	- Restructure string table generation to be macro compatible
+	- Add ability to verify/update string table inclusion
+
 ## Unreal Importer 1.0.2 Changelog : 
 
 - Fixes:
