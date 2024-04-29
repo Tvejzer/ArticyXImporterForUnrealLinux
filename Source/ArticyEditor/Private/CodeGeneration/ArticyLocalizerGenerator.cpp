@@ -15,6 +15,7 @@
 #include "GenericPlatform/GenericPlatformFile.h"
 #include "Internationalization/Internationalization.h"
 #include "Internationalization/Culture.h"
+#include "Misc/ConfigCacheIni.h"
 
 void ArticyLocalizerGenerator::GenerateCode(const UArticyImportData* Data, FString& OutFile)
 {
@@ -59,6 +60,18 @@ void ArticyLocalizerGenerator::GenerateCode(const UArticyImportData* Data, FStri
 			});
 		});
 	});
+
+	// Path to the DefaultGame.ini
+	FString IniFilePath = FPaths::ProjectConfigDir() + FString(TEXT("DefaultGame.ini"));
+
+	// Section and Key to modify
+	FString SectionName = FString(TEXT("/Script/UnrealEd.ProjectPackagingSettings"));
+	FString KeyName = FString(TEXT("+DirectoriesToAlwaysCook"));
+	FString NewValueToAdd = FString(TEXT("(Path=\"/Game/ArticyContent\")"));
+
+	// Modify the INI file
+	ModifyIniFile(IniFilePath, SectionName, KeyName, NewValueToAdd);
+
 }
 
 void ArticyLocalizerGenerator::IterateStringTables(CodeFileGenerator* Header, const FString& DirectoryPath)
@@ -78,5 +91,21 @@ void ArticyLocalizerGenerator::IterateStringTables(CodeFileGenerator* Header, co
 			Header->Line(FString::Printf(TEXT("FStringTableRegistry::Get().UnregisterStringTable(FName(\"%s\"))"), *StringTable), true);
 			Header->Line(FString::Printf(TEXT("LOCTABLE_FROMFILE_GAME(\"%s\", \"%s\", \"%s/%s.csv\")"), *StringTable, *StringTable, *RelPath, *StringTable), true);
 		}
+	}
+}
+
+void ArticyLocalizerGenerator::ModifyIniFile(const FString& IniFilePath, const FString& SectionName, const FString& KeyName, const FString& NewValue)
+{
+	// Read the INI file
+	FString OldValue;
+	GConfig->GetString(*SectionName, *KeyName, OldValue, IniFilePath);
+
+	// Check if the directory is already present
+	if (!OldValue.Contains(NewValue))
+	{
+		// Modify the INI file
+		FString CombinedValue = OldValue + NewValue;
+		GConfig->SetString(*SectionName, *KeyName, *CombinedValue, IniFilePath);
+		GConfig->Flush(false, IniFilePath);
 	}
 }
