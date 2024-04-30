@@ -9,6 +9,7 @@
 #include "ArticyTextExtension.h"
 #include "Internationalization/StringTableRegistry.h"
 #include "UObject/UObjectIterator.h"
+#include "UObject/Package.h"
 #include "ArticyLocalizerSystem.generated.h"
 
 UCLASS(BlueprintType)
@@ -70,10 +71,10 @@ public:
 		{
 			TableName = TEXT("ARTICY");
 		}
-		const FText SourceString = FText::FromStringTable(
+		FText SourceString = FText::FromStringTable(
 			FName(TableName.GetValue()),
 			Key.ToString(),
-			EStringTableLoadingPolicy::FindOrFullyLoad);
+			EStringTableLoadingPolicy::Find);
 		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
 		{
 			if (ResolveTextExtension)
