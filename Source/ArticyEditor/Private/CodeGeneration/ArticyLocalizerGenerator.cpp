@@ -45,18 +45,25 @@ void ArticyLocalizerGenerator::GenerateCode(const UArticyImportData* Data, FStri
 				header->Line(TEXT("bListenerSet = true"), true, true, 1);
 				header->Line(TEXT("}"));
 
+				IterateStringTables(header, FPaths::ProjectContentDir() / "ArticyContent/Generated");
+
 				FString L10NDir = FPaths::ProjectContentDir() / "L10N";
 				if (FPaths::DirectoryExists(L10NDir))
 				{
 					for (const auto Language : Data->Languages.Languages)
 					{
 						FString LangPath = L10NDir / Language.Key / "ArticyContent/Generated";
+						if (Language.Key.IsEmpty())
+						{
+							IterateStringTables(header, LangPath);
+							continue;
+						}
 						header->Line(FString::Printf(TEXT("if (LangName.Equals(\"%s\")) {"), *Language.Key));
-						IterateStringTables(header, LangPath);
+						IterateStringTables(header, LangPath, true);
 						header->Line(TEXT("}"));
 					}
 				}
-				IterateStringTables(header, FPaths::ProjectContentDir() / "ArticyContent/Generated");
+				header->Line(TEXT("bDataLoaded = true"), true);
 			});
 		});
 	});
@@ -71,12 +78,12 @@ void ArticyLocalizerGenerator::GenerateCode(const UArticyImportData* Data, FStri
 
 	// Modify the INI file
 	ModifyIniFile(IniFilePath, SectionName, KeyName, NewValueToAdd);
-
 }
 
-void ArticyLocalizerGenerator::IterateStringTables(CodeFileGenerator* Header, const FString& DirectoryPath)
+void ArticyLocalizerGenerator::IterateStringTables(CodeFileGenerator* Header, const FString& DirectoryPath, bool Indent)
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+	int IndentOffset = Indent ? 1 : 0;
 
 	if (PlatformFile.DirectoryExists(*DirectoryPath))
 	{
@@ -88,8 +95,8 @@ void ArticyLocalizerGenerator::IterateStringTables(CodeFileGenerator* Header, co
 		for (const FString& FilePath : FoundFiles)
 		{
 			FString StringTable = FPaths::GetBaseFilename(*FilePath, true);
-			Header->Line(FString::Printf(TEXT("FStringTableRegistry::Get().UnregisterStringTable(FName(\"%s\"))"), *StringTable), true);
-			Header->Line(FString::Printf(TEXT("LOCTABLE_FROMFILE_GAME(\"%s\", \"%s\", \"%s/%s.csv\")"), *StringTable, *StringTable, *RelPath, *StringTable), true);
+			Header->Line(FString::Printf(TEXT("FStringTableRegistry::Get().UnregisterStringTable(FName(\"%s\"))"), *StringTable), true, Indent, IndentOffset);
+			Header->Line(FString::Printf(TEXT("LOCTABLE_FROMFILE_GAME(\"%s\", \"%s\", \"%s/%s.csv\")"), *StringTable, *StringTable, *RelPath, *StringTable), true, Indent, IndentOffset);
 		}
 	}
 }

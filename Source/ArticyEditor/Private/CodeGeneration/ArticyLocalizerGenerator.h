@@ -20,6 +20,6 @@ public:
 private:
 	ArticyLocalizerGenerator() {}
 	~ArticyLocalizerGenerator() {}
-	static void IterateStringTables(CodeFileGenerator* Header, const FString& DirectoryPath);
+	static void IterateStringTables(CodeFileGenerator* Header, const FString& DirectoryPath, bool Indent = false);
 	static void ModifyIniFile(const FString& IniFilePath, const FString& SectionName, const FString& KeyName, const FString& NewValue);
 };

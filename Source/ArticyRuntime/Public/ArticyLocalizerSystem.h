@@ -8,6 +8,7 @@
 #include "ArticyType.h"
 #include "ArticyTextExtension.h"
 #include "Internationalization/StringTableRegistry.h"
+#include "UObject/UObjectIterator.h"
 #include "ArticyLocalizerSystem.generated.h"
 
 UCLASS(BlueprintType)
@@ -24,7 +25,7 @@ public:
 			return ArticyLocalizerSystem.Get();
 		}
 
-		UClass* ParentClass = UArticyLocalizerSystem::StaticClass(); // Use your actual parent class here
+		UClass* ParentClass = UArticyLocalizerSystem::StaticClass();
 
 		// Iterate over all classes
 		for (TObjectIterator<UClass> It; It; ++It)
@@ -73,7 +74,6 @@ public:
 			FName(TableName.GetValue()),
 			Key.ToString(),
 			EStringTableLoadingPolicy::FindOrFullyLoad);
-		const FString Decoded = SourceString.ToString();
 		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
 		{
 			if (ResolveTextExtension)
