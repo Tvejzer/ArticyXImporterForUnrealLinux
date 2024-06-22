@@ -68,4 +68,10 @@ public:
 	/** Gets the last object in a branch. */
 	UFUNCTION(BlueprintPure, meta=(DisplayName = "Get Target"), Category="ArticyBranch")
 	static TScriptInterface<class IArticyFlowObject> GetBranchTarget(UPARAM(ref) const struct FArticyBranch& Branch);
+
+	UFUNCTION(BlueprintPure, meta=(DisplayName = "Get Seen Counter"), Category="ArticyNode")
+	static int GetNodeSeenCounter(TScriptInterface<class IArticyFlowObject> Node, const UObject* WorldContext);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Set Seen Counter"), Category = "ArticyNode")
+	static int SetNodeSeenCounter(TScriptInterface<class IArticyFlowObject> Node, int Value, const UObject* WorldContext);
 };

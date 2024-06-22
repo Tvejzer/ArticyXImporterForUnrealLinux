@@ -41,6 +41,7 @@ class UArticyFlowPlayer;
 class UArticyGlobalVariables;
 class UArticyVariable;
 class UArticyBaseVariableSet;
+class IArticyFlowObject;
 struct ExpressoType;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGVChanged, UArticyVariable*, Variable);
@@ -505,7 +506,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Getter")
 	const TArray<UArticyBaseVariableSet*> GetVariableSets() const { return VariableSets; }
-	
+
 	/* Exec functions are only supported by a couple singleton classes
 	 * To make this exec compatible, one of those exec classes has to forward the call
 	 * See https://wiki.unrealengine.com/Exec_Functions for reference*/
@@ -531,6 +532,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Debug")
 	void DisableDebugLogging();
 
+	void ResetVisited();
+	int GetSeenCounter(const IArticyFlowObject* Object) const;
+	int SetSeenCounter(const IArticyFlowObject* Object, int Value);
+
 protected:
 
 	UPROPERTY()
@@ -545,6 +550,8 @@ private:
 
 	// Runtime clones of non-default global variable assets managed by GetRuntimeClone
 	static TMap<FName, TWeakObjectPtr<UArticyGlobalVariables>> OtherClones;
+
+	TMap<FArticyId, int> VisitedNodes;
 
 	template <typename ArticyVariableType, typename VariablePayloadType>
 	void SetVariableValue(const FName Namespace, const FName Variable, const VariablePayloadType Value);

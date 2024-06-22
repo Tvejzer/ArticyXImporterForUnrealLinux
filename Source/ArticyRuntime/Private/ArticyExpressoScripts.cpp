@@ -5,6 +5,7 @@
 #include "ArticyExpressoScripts.h"
 #include "ArticyRuntimeModule.h"
 #include "ArticyFlowPlayer.h"
+#include <ArticyPins.h>
 
 TMap<FName, ExpressoType::Definition> ExpressoType::Definitions;
 
@@ -866,4 +867,70 @@ bool UArticyExpressoScripts::isPropInRange(const ExpressoType& Id_CloneId, const
                                            const FString& lowerBound, const FString& upperBound) const
 {
 	return isPropInRange(getObjInternal(Id_CloneId), Property, lowerBound, upperBound);
+}
+
+void UArticyExpressoScripts::resetAllSeenCounter()
+{
+	UArticyGlobalVariables* GVs = GetGV();
+	if (GVs)
+	{
+		GVs->ResetVisited();
+	}
+}
+
+int UArticyExpressoScripts::getSeenCounter(UArticyBaseObject* Object)
+{
+	if (Object == nullptr)
+	{
+		Object = self;
+	}
+
+	UArticyGlobalVariables* GVs = GetGV();
+	auto* Obj = Cast<IArticyFlowObject>(Object);
+	if (GVs && Obj)
+	{
+		return GVs->GetSeenCounter(Obj);
+	}
+	return 0;
+}
+
+int UArticyExpressoScripts::setSeenCounter(const int Value)
+{
+	return setSeenCounter(self, Value);
+}
+
+int UArticyExpressoScripts::setSeenCounter(UArticyBaseObject* Object, const int Value)
+{
+	if (Object == nullptr)
+	{
+		Object = self;
+	}
+
+	UArticyGlobalVariables* GVs = GetGV();
+	auto* Obj = Cast<IArticyFlowObject>(Object);
+	if (GVs && Obj)
+	{
+		return GVs->SetSeenCounter(Obj, Value);
+	}
+	return 0;
+}
+
+int UArticyExpressoScripts::getSeenCounter(const ExpressoType& Id_CloneId)
+{
+	return getSeenCounter(getObjInternal(Id_CloneId));
+}
+
+int UArticyExpressoScripts::setSeenCounter(const ExpressoType& Id_CloneId, const int Value)
+{
+	return setSeenCounter(getObjInternal(Id_CloneId), Value);
+}
+
+bool UArticyExpressoScripts::fallback(const ExpressoType& Id_CloneId)
+{
+	return false;
+}
+
+bool UArticyExpressoScripts::fallback()
+{
+	return false;
 }

@@ -954,9 +954,15 @@ void UArticyImportData::AddScriptFragment(const FString& Fragment, const bool bI
 	// regex pattern to find literal string, even if they contain escaped quotes (looks nasty if string escaped...): "([^"\\]|\\[\s\S])*" 
 	const FRegexPattern literalStringPattern(TEXT("\"([^\"\\\\]|\\\\[\\s\\S])*\""));
 
+	// regex patterns to match exact words "seen", "unseen" and "seenCounter"
+	const FRegexPattern seenPattern(TEXT("\\bseen\\b"));
+	const FRegexPattern unseenPattern(TEXT("\\bunseen\\b"));
+	const FRegexPattern seenCounterPattern(TEXT("\\bseenCounter\\b"));
+
 	bool bCreateBlueprintableUserMethods = UArticyPluginSettings::Get()->bCreateBlueprintTypeForScriptMethods;
 
 	FString string = Fragment; //Fragment.Replace(TEXT("\n"), TEXT(""));
+
 	if (string.Len() > 0)
 	{
 		static TArray<FString> lines;
@@ -1064,6 +1070,40 @@ void UArticyImportData::AddScriptFragment(const FString& Fragment, const bool bI
 					}
 				} // !inLiteral
 			} // GV matching
+
+			// replace "seen" and "unseen" with corresponding expressions
+			FRegexMatcher seenMatcher(seenPattern, line);
+			FRegexMatcher unseenMatcher(unseenPattern, line);
+
+			while (seenMatcher.FindNext())
+			{
+				auto start = seenMatcher.GetMatchBeginning() + offset;
+				auto end = seenMatcher.GetMatchEnding() + offset;
+				line = line.Left(start) + TEXT("seenCounter > 0") + line.Mid(end);
+				offset += strlen("seenCounter > 0") - (end - start);
+			}
+
+			offset = 0; // reset offset for unseen replacement
+
+			while (unseenMatcher.FindNext())
+			{
+				auto start = unseenMatcher.GetMatchBeginning() + offset;
+				auto end = unseenMatcher.GetMatchEnding() + offset;
+				line = line.Left(start) + TEXT("seenCounter == 0") + line.Mid(end);
+				offset += strlen("seenCounter == 0") - (end - start);
+			}
+
+			FRegexMatcher seenCounterMatcher(seenCounterPattern, line);
+
+			offset = 0; // reset offset for seen counter replacement
+
+			while (seenCounterMatcher.FindNext())
+			{
+				auto start = seenCounterMatcher.GetMatchBeginning() + offset;
+				auto end = seenCounterMatcher.GetMatchEnding() + offset;
+				line = line.Left(start) + TEXT("getSeenCounter()") + line.Mid(end);
+				offset += strlen("getSeenCounter()") - (end - start);
+			}
 
 			//re-compose the string
 			string += line;

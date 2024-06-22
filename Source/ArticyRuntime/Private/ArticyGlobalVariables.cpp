@@ -10,6 +10,7 @@
 #include "ArticyFlowPlayer.h"
 #include "ArticyAlternativeGlobalVariables.h"
 #include "AssetRegistry/AssetData.h"
+#include <ArticyPins.h>
 
 FArticyGvName::FArticyGvName(const FName FullVariableName)
 {
@@ -342,6 +343,61 @@ void UArticyGlobalVariables::EnableDebugLogging()
 void UArticyGlobalVariables::DisableDebugLogging()
 {
 	bLogVariableAccess = false;
+}
+
+void UArticyGlobalVariables::ResetVisited()
+{
+	VisitedNodes.Reset();
+}
+
+int UArticyGlobalVariables::GetSeenCounter(const IArticyFlowObject* Object) const
+{
+	auto* Obj = Cast<UArticyPrimitive>(Object);
+	if (Obj)
+	{
+		FArticyId targetId;
+		// get owner of pin
+		if (auto* Pin = Cast<UArticyFlowPin>(Obj))
+		{
+			targetId = Pin->Owner;
+		}
+		else
+		{
+			targetId = Obj->GetId();
+		}
+		if (VisitedNodes.Contains(targetId))
+		{
+			return VisitedNodes[targetId];
+		}
+	}
+	return 0;
+}
+
+int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int Value)
+{
+	auto* Obj = Cast<UArticyPrimitive>(Object);
+	if (Obj)
+	{
+		FArticyId targetId;
+		// get owner of pin
+		if (auto* Pin = Cast<UArticyFlowPin>(Obj))
+		{
+			targetId = Pin->Owner;
+		}
+		else
+		{
+			targetId = Obj->GetId();
+		}
+		// update if already tracked
+		if (VisitedNodes.Contains(targetId))
+		{
+			return VisitedNodes[targetId] = Value;
+		}
+		// add and return
+		VisitedNodes.Add(targetId, Value);
+		return Value;
+	}
+	return 0;
 }
 
 TWeakObjectPtr<UArticyGlobalVariables> UArticyGlobalVariables::Clone;

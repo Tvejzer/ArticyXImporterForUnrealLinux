@@ -214,6 +214,13 @@ TArray<FArticyBranch> UArticyFlowPlayer::Explore(IArticyFlowObject* Node, bool b
 {
 	TArray<FArticyBranch> OutBranches;
 
+	// update nodes visited
+	auto* GVs = GetGVs();
+	if (GVs)
+	{
+		GVs->SetSeenCounter(Node, GVs->GetSeenCounter(Node) + 1);
+	}
+
 	//check stop condition
 	if((Depth > ExploreLimit || !Node || (Node != Cursor.GetInterface() && ShouldPauseOn(Node))))
 	{

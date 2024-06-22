@@ -347,6 +347,16 @@ protected:
 	static bool isPropInRange(UArticyBaseObject* Object, const FString& Property, const FString& lowerBound, const FString& upperBound);
 	bool isPropInRange(const ExpressoType& Id_CloneId, const FString& Property, const FString& lowerBound, const FString& upperBound) const;
 
+    /** Don't change the name, it's called like this in script fragments! */
+    void resetAllSeenCounter();
+    int getSeenCounter(UArticyBaseObject* Object = nullptr);
+    int setSeenCounter(const int Value = 1);
+    int setSeenCounter(UArticyBaseObject* Object, const int Value = 1);
+    int getSeenCounter(const ExpressoType& Id_CloneId);
+    int setSeenCounter(const ExpressoType& Id_CloneId, const int Value = 1);
+    bool fallback(const ExpressoType& Id_CloneId);
+    bool fallback();
+
 	/**
 	 * Prints a string to the log. Can contain placeholders:
 	 * print("{0} contain a placeholder!", "I")

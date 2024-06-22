@@ -5,6 +5,7 @@
 #include "ArticyFunctionLibrary.h"
 #include "ArticyObject.h"
 #include "ArticyFlowPlayer.h"
+#include "Interfaces/ArticyFlowObject.h"
 
 UArticyObject* UArticyFunctionLibrary::ArticyRef_GetObject(FArticyRef Ref, TSubclassOf<class UArticyObject> CastTo, const UObject* WorldContext)
 {
@@ -80,4 +81,35 @@ TScriptInterface<IArticyFlowObject> UArticyFunctionLibrary::GetBranchTarget(cons
 {
 	return Branch.GetTarget();
 }
- 
+
+int UArticyFunctionLibrary::GetNodeSeenCounter(TScriptInterface<IArticyFlowObject> Node, const UObject* WorldContext)
+{
+	auto *db = UArticyDatabase::Get(WorldContext);
+	if (!db)
+	{
+		return 0;
+	}
+	auto* GVs = db->GetGVs();
+	if (GVs)
+	{
+		return GVs->GetSeenCounter(Cast<IArticyFlowObject>(Node.GetObject()));
+	}
+
+	return 0;
+}
+
+int UArticyFunctionLibrary::SetNodeSeenCounter(TScriptInterface<IArticyFlowObject> Node, int Value, const UObject* WorldContext)
+{
+	auto* db = UArticyDatabase::Get(WorldContext);
+	if (!db)
+	{
+		return 0;
+	}
+	auto* GVs = db->GetGVs();
+	if (GVs)
+	{
+		return GVs->SetSeenCounter(Cast<IArticyFlowObject>(Node.GetObject()), Value);
+	}
+
+	return 0;
+}
