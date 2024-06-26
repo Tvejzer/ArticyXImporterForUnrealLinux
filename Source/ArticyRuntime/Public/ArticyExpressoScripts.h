@@ -352,9 +352,10 @@ protected:
     int getSeenCounter(UArticyBaseObject* Object = nullptr);
     int setSeenCounter(const int Value = 1);
     int setSeenCounter(UArticyBaseObject* Object, const int Value = 1);
-    int getSeenCounter(const ExpressoType& Id_CloneId);
-    int setSeenCounter(const ExpressoType& Id_CloneId, const int Value = 1);
-    bool fallback(const ExpressoType& Id_CloneId);
+    int getSeenCounter(const FString& NameOrId);
+    int setSeenCounter(const FString& NameOrId, const int Value = 1);
+    bool fallback(UArticyBaseObject* Object);
+    bool fallback(const FString& NameOrId);
     bool fallback();
 
 	/**

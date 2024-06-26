@@ -915,19 +915,30 @@ int UArticyExpressoScripts::setSeenCounter(UArticyBaseObject* Object, const int 
 	return 0;
 }
 
-int UArticyExpressoScripts::getSeenCounter(const ExpressoType& Id_CloneId)
+int UArticyExpressoScripts::getSeenCounter(const FString& NameOrId)
 {
-	return getSeenCounter(getObjInternal(Id_CloneId));
+	return getSeenCounter(getObj(NameOrId, 0));
 }
 
-int UArticyExpressoScripts::setSeenCounter(const ExpressoType& Id_CloneId, const int Value)
+int UArticyExpressoScripts::setSeenCounter(const FString& NameOrId, const int Value)
 {
-	return setSeenCounter(getObjInternal(Id_CloneId), Value);
+	return setSeenCounter(getObj(NameOrId, 0), Value);
 }
 
-bool UArticyExpressoScripts::fallback(const ExpressoType& Id_CloneId)
+bool UArticyExpressoScripts::fallback(UArticyBaseObject* Object)
 {
+	UArticyGlobalVariables* GVs = GetGV();
+	auto* Obj = Cast<IArticyFlowObject>(Object);
+	if (GVs && Obj)
+	{
+		return GVs->Fallback(Obj);
+	}
 	return false;
+}
+
+bool UArticyExpressoScripts::fallback(const FString& NameOrId)
+{
+	return fallback(getObj(NameOrId, 0));
 }
 
 bool UArticyExpressoScripts::fallback()

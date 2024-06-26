@@ -350,7 +350,7 @@ void UArticyGlobalVariables::ResetVisited()
 	VisitedNodes.Reset();
 }
 
-int UArticyGlobalVariables::GetSeenCounter(const IArticyFlowObject* Object) const
+int UArticyGlobalVariables::GetSeenCounter(const IArticyFlowObject* Object, bool BodyOnly) const
 {
 	auto* Obj = Cast<UArticyPrimitive>(Object);
 	if (Obj)
@@ -359,6 +359,10 @@ int UArticyGlobalVariables::GetSeenCounter(const IArticyFlowObject* Object) cons
 		// get owner of pin
 		if (auto* Pin = Cast<UArticyFlowPin>(Obj))
 		{
+			if (BodyOnly)
+			{
+				return 0;
+			}
 			targetId = Pin->Owner;
 		}
 		else
@@ -373,7 +377,7 @@ int UArticyGlobalVariables::GetSeenCounter(const IArticyFlowObject* Object) cons
 	return 0;
 }
 
-int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int Value)
+int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int Value, bool BodyOnly)
 {
 	auto* Obj = Cast<UArticyPrimitive>(Object);
 	if (Obj)
@@ -382,6 +386,10 @@ int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int 
 		// get owner of pin
 		if (auto* Pin = Cast<UArticyFlowPin>(Obj))
 		{
+			if (BodyOnly)
+			{
+				return 0;
+			}
 			targetId = Pin->Owner;
 		}
 		else
@@ -398,6 +406,27 @@ int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int 
 		return Value;
 	}
 	return 0;
+}
+
+bool UArticyGlobalVariables::Fallback(const IArticyFlowObject* Object)
+{
+	auto* Obj = Cast<UArticyPrimitive>(Object);
+	if (Obj)
+	{
+		FArticyId targetId;
+		// get owner of pin
+		if (auto* Pin = Cast<UArticyFlowPin>(Obj))
+		{
+			targetId = Pin->Owner;
+		}
+		else
+		{
+			targetId = Obj->GetId();
+		}
+		// TODO: Implement
+		return false;
+	}
+	return false;
 }
 
 TWeakObjectPtr<UArticyGlobalVariables> UArticyGlobalVariables::Clone;

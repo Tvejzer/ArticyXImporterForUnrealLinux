@@ -533,8 +533,9 @@ public:
 	void DisableDebugLogging();
 
 	void ResetVisited();
-	int GetSeenCounter(const IArticyFlowObject* Object) const;
-	int SetSeenCounter(const IArticyFlowObject* Object, int Value);
+	int GetSeenCounter(const IArticyFlowObject* Object, const bool BodyOnly = false) const;
+	int SetSeenCounter(const IArticyFlowObject* Object, int Value, const bool BodyOnly = false);
+	bool Fallback(const IArticyFlowObject* Object);
 
 protected:
 
