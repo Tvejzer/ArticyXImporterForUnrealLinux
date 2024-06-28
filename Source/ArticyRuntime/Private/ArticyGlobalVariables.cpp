@@ -410,6 +410,11 @@ int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int 
 
 bool UArticyGlobalVariables::Fallback(const IArticyFlowObject* Object)
 {
+	return GetValidBranches(Object) <= 1;
+}
+
+int UArticyGlobalVariables::GetValidBranches(const IArticyFlowObject* Object) const
+{
 	auto* Obj = Cast<UArticyPrimitive>(Object);
 	if (Obj)
 	{
@@ -423,10 +428,40 @@ bool UArticyGlobalVariables::Fallback(const IArticyFlowObject* Object)
 		{
 			targetId = Obj->GetId();
 		}
-		// TODO: Implement
-		return false;
+		// return if available
+		if (ValidBranches.Contains(targetId))
+		{
+			return ValidBranches[targetId];
+		}
 	}
-	return false;
+	return 0;
+}
+
+int UArticyGlobalVariables::SetValidBranches(const IArticyFlowObject* Object, int Value)
+{
+	auto* Obj = Cast<UArticyPrimitive>(Object);
+	if (Obj)
+	{
+		FArticyId targetId;
+		// get owner of pin
+		if (auto* Pin = Cast<UArticyFlowPin>(Obj))
+		{
+			targetId = Pin->Owner;
+		}
+		else
+		{
+			targetId = Obj->GetId();
+		}
+		// update if already tracked
+		if (ValidBranches.Contains(targetId))
+		{
+			return ValidBranches[targetId] = Value;
+		}
+		// add and return
+		ValidBranches.Add(targetId, Value);
+		return Value;
+	}
+	return 0;
 }
 
 TWeakObjectPtr<UArticyGlobalVariables> UArticyGlobalVariables::Clone;

@@ -536,6 +536,8 @@ public:
 	int GetSeenCounter(const IArticyFlowObject* Object, const bool BodyOnly = false) const;
 	int SetSeenCounter(const IArticyFlowObject* Object, int Value, const bool BodyOnly = false);
 	bool Fallback(const IArticyFlowObject* Object);
+	int GetValidBranches(const IArticyFlowObject* Object) const;
+	int SetValidBranches(const IArticyFlowObject* Object, int Value);
 
 protected:
 
@@ -553,6 +555,7 @@ private:
 	static TMap<FName, TWeakObjectPtr<UArticyGlobalVariables>> OtherClones;
 
 	TMap<FArticyId, int> VisitedNodes;
+	TMap<FArticyId, int> ValidBranches;
 
 	template <typename ArticyVariableType, typename VariablePayloadType>
 	void SetVariableValue(const FName Namespace, const FName Variable, const VariablePayloadType Value);

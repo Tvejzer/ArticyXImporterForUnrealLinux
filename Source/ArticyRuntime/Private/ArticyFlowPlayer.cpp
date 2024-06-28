@@ -319,6 +319,20 @@ TArray<FArticyBranch> UArticyFlowPlayer::Explore(IArticyFlowObject* Node, bool b
 		}
 	}
 
+	// Count valid branches at this node
+	if (GVs)
+	{
+		int ValidCount = 0;
+		for (auto& branch : OutBranches)
+		{
+			if (branch.bIsValid)
+			{
+				ValidCount++;
+			}
+		}
+		GVs->SetValidBranches(Node, ValidCount);
+	}
+
 	return OutBranches;
 }
 
