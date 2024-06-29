@@ -369,9 +369,11 @@ int UArticyGlobalVariables::GetSeenCounter(const IArticyFlowObject* Object, bool
 		{
 			targetId = Obj->GetId();
 		}
-		if (VisitedNodes.Contains(targetId))
+		int CurrentShadowLevel = GetShadowLevel();
+
+		if (VisitedNodes.Contains(CurrentShadowLevel) && VisitedNodes[CurrentShadowLevel].Contains(targetId))
 		{
-			return VisitedNodes[targetId];
+			return VisitedNodes[CurrentShadowLevel][targetId];
 		}
 	}
 	return 0;
@@ -397,12 +399,20 @@ int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int 
 			targetId = Obj->GetId();
 		}
 		// update if already tracked
-		if (VisitedNodes.Contains(targetId))
+		int CurrentShadowLevel = GetShadowLevel();
+		if (!VisitedNodes.Contains(CurrentShadowLevel))
 		{
-			return VisitedNodes[targetId] = Value;
+			TMap<FArticyId, int> Entry;
+			Entry.Add(targetId, Value);
+			VisitedNodes.Add(CurrentShadowLevel, Entry);
+			return Value;
+		}
+		if (VisitedNodes[CurrentShadowLevel].Contains(targetId))
+		{
+			return VisitedNodes[CurrentShadowLevel][targetId] = Value;
 		}
 		// add and return
-		VisitedNodes.Add(targetId, Value);
+		VisitedNodes[CurrentShadowLevel].Add(targetId, Value);
 		return Value;
 	}
 	return 0;

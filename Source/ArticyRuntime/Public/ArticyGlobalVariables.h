@@ -554,7 +554,7 @@ private:
 	// Runtime clones of non-default global variable assets managed by GetRuntimeClone
 	static TMap<FName, TWeakObjectPtr<UArticyGlobalVariables>> OtherClones;
 
-	TMap<FArticyId, int> VisitedNodes;
+	TMap<int, TMap<FArticyId, int>> VisitedNodes;
 	TMap<FArticyId, int> ValidBranches;
 
 	template <typename ArticyVariableType, typename VariablePayloadType>
