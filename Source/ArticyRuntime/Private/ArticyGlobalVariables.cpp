@@ -380,7 +380,10 @@ int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int 
 		targetId = Obj->GetId();
 
 		if (VisitedNodes.IsEmpty())
-			return 0;
+		{
+			TMap<FArticyId, int> Empty;
+			VisitedNodes.Add(Empty);
+		}
 
 		// update if already tracked
 		if (auto *counter = VisitedNodes.Top().Find(targetId))
@@ -404,7 +407,10 @@ int UArticyGlobalVariables::IncrementSeenCounter(const IArticyFlowObject* Object
 		targetId = Obj->GetId();
 
 		if (VisitedNodes.IsEmpty())
-			return 0;
+		{
+			TMap<FArticyId, int> Empty;
+			VisitedNodes.Add(Empty);
+		}
 
 		// update if already tracked
 		if (auto* counter = VisitedNodes.Top().Find(targetId))
@@ -478,7 +484,10 @@ int UArticyGlobalVariables::SetValidBranches(const IArticyFlowObject* Object, in
 void UArticyGlobalVariables::PushSeen()
 {
 	if (!VisitedNodes.IsEmpty())
-		VisitedNodes.Push(VisitedNodes.Top());
+	{
+		TMap<FArticyId, int> Copy = VisitedNodes.Top();
+		VisitedNodes.Push(Copy);
+	}
 }
 
 void UArticyGlobalVariables::PopSeen()
