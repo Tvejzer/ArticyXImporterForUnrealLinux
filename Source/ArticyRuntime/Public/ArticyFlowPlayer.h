@@ -315,6 +315,7 @@ void UArticyFlowPlayer::ShadowedOperation(Lambda Operation) const
 
 	//notify on push
 	GetGVs()->PushState(ShadowLevel);
+	GetGVs()->PushSeen();
 	UArticyDatabase::Get(this)->PushState(ShadowLevel);
 	OnShadowOpStart.Broadcast();
 
@@ -324,6 +325,7 @@ void UArticyFlowPlayer::ShadowedOperation(Lambda Operation) const
 	//notify on pop
 	OnShadowOpEnd.Broadcast();
 	UArticyDatabase::Get(this)->PopState(ShadowLevel);
+	GetGVs()->PopSeen();
 	GetGVs()->PopState(ShadowLevel);
 
 	//pop shadow state

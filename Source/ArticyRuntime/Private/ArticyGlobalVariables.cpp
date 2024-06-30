@@ -348,72 +348,73 @@ void UArticyGlobalVariables::DisableDebugLogging()
 void UArticyGlobalVariables::ResetVisited()
 {
 	VisitedNodes.Reset();
+	TMap<FArticyId, int> Empty;
+	VisitedNodes.Add(Empty);
 }
 
-int UArticyGlobalVariables::GetSeenCounter(const IArticyFlowObject* Object, bool BodyOnly) const
+int UArticyGlobalVariables::GetSeenCounter(const IArticyFlowObject* Object) const
 {
 	auto* Obj = Cast<UArticyPrimitive>(Object);
 	if (Obj)
 	{
 		FArticyId targetId;
-		// get owner of pin
-		if (auto* Pin = Cast<UArticyFlowPin>(Obj))
-		{
-			if (BodyOnly)
-			{
-				return 0;
-			}
-			targetId = Pin->Owner;
-		}
-		else
-		{
-			targetId = Obj->GetId();
-		}
-		int CurrentShadowLevel = GetShadowLevel();
+		targetId = Obj->GetId();
 
-		if (VisitedNodes.Contains(CurrentShadowLevel) && VisitedNodes[CurrentShadowLevel].Contains(targetId))
+		if (VisitedNodes.IsEmpty())
+			return 0;
+
+		if (auto *counter = VisitedNodes.Top().Find(targetId))
 		{
-			return VisitedNodes[CurrentShadowLevel][targetId];
+			return *counter;
 		}
 	}
 	return 0;
 }
 
-int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int Value, bool BodyOnly)
+int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int Value)
 {
 	auto* Obj = Cast<UArticyPrimitive>(Object);
 	if (Obj)
 	{
 		FArticyId targetId;
-		// get owner of pin
-		if (auto* Pin = Cast<UArticyFlowPin>(Obj))
-		{
-			if (BodyOnly)
-			{
-				return 0;
-			}
-			targetId = Pin->Owner;
-		}
-		else
-		{
-			targetId = Obj->GetId();
-		}
+		targetId = Obj->GetId();
+
+		if (VisitedNodes.IsEmpty())
+			return 0;
+
 		// update if already tracked
-		int CurrentShadowLevel = GetShadowLevel();
-		if (!VisitedNodes.Contains(CurrentShadowLevel))
+		if (auto *counter = VisitedNodes.Top().Find(targetId))
 		{
-			TMap<FArticyId, int> Entry;
-			Entry.Add(targetId, Value);
-			VisitedNodes.Add(CurrentShadowLevel, Entry);
+			*counter = Value;
 			return Value;
 		}
-		if (VisitedNodes[CurrentShadowLevel].Contains(targetId))
+		// add and return
+		VisitedNodes.Top().Add(targetId, Value);
+		return Value;
+	}
+	return 0;
+}
+
+int UArticyGlobalVariables::IncrementSeenCounter(const IArticyFlowObject* Object)
+{
+	auto* Obj = Cast<UArticyPrimitive>(Object);
+	if (Obj)
+	{
+		FArticyId targetId;
+		targetId = Obj->GetId();
+
+		if (VisitedNodes.IsEmpty())
+			return 0;
+
+		// update if already tracked
+		if (auto* counter = VisitedNodes.Top().Find(targetId))
 		{
-			return VisitedNodes[CurrentShadowLevel][targetId] = Value;
+			*counter++;
+			return *counter;;
 		}
 		// add and return
-		VisitedNodes[CurrentShadowLevel].Add(targetId, Value);
-		return Value;
+		VisitedNodes.Top().Add(targetId, 1);
+		return 1;
 	}
 	return 0;
 }
@@ -472,6 +473,18 @@ int UArticyGlobalVariables::SetValidBranches(const IArticyFlowObject* Object, in
 		return Value;
 	}
 	return 0;
+}
+
+void UArticyGlobalVariables::PushSeen()
+{
+	if (!VisitedNodes.IsEmpty())
+		VisitedNodes.Push(VisitedNodes.Top());
+}
+
+void UArticyGlobalVariables::PopSeen()
+{
+	if (!VisitedNodes.IsEmpty())
+		VisitedNodes.Pop();
 }
 
 TWeakObjectPtr<UArticyGlobalVariables> UArticyGlobalVariables::Clone;

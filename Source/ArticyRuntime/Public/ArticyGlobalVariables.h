@@ -533,11 +533,15 @@ public:
 	void DisableDebugLogging();
 
 	void ResetVisited();
-	int GetSeenCounter(const IArticyFlowObject* Object, const bool BodyOnly = false) const;
-	int SetSeenCounter(const IArticyFlowObject* Object, int Value, const bool BodyOnly = false);
+	int GetSeenCounter(const IArticyFlowObject* Object) const;
+	int SetSeenCounter(const IArticyFlowObject* Object, int Value);
+	int IncrementSeenCounter(const IArticyFlowObject* Object);
 	bool Fallback(const IArticyFlowObject* Object);
 	int GetValidBranches(const IArticyFlowObject* Object) const;
 	int SetValidBranches(const IArticyFlowObject* Object, int Value);
+
+	void PushSeen();
+	void PopSeen();
 
 protected:
 
@@ -554,7 +558,7 @@ private:
 	// Runtime clones of non-default global variable assets managed by GetRuntimeClone
 	static TMap<FName, TWeakObjectPtr<UArticyGlobalVariables>> OtherClones;
 
-	TMap<int, TMap<FArticyId, int>> VisitedNodes;
+	TArray<TMap<FArticyId, int>> VisitedNodes;
 	TMap<FArticyId, int> ValidBranches;
 
 	template <typename ArticyVariableType, typename VariablePayloadType>

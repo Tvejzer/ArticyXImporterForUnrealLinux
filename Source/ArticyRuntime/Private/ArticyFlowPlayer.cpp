@@ -218,7 +218,7 @@ TArray<FArticyBranch> UArticyFlowPlayer::Explore(IArticyFlowObject* Node, bool b
 	auto* GVs = GetGVs();
 	if (GVs)
 	{
-		GVs->SetSeenCounter(Node, GVs->GetSeenCounter(Node) + 1, true);
+		GVs->IncrementSeenCounter(Node);
 	}
 
 	//check stop condition

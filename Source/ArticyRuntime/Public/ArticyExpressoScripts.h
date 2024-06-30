@@ -350,9 +350,9 @@ protected:
     /** Don't change the name, it's called like this in script fragments! */
     void resetAllSeenCounter();
     int getSeenCounter(UArticyBaseObject* Object = nullptr);
+    int getSeenCounter(const FString& NameOrId);
     int setSeenCounter(const int Value = 1);
     int setSeenCounter(UArticyBaseObject* Object, const int Value = 1);
-    int getSeenCounter(const FString& NameOrId);
     int setSeenCounter(const FString& NameOrId, const int Value = 1);
     bool fallback(UArticyBaseObject* Object);
     bool fallback(const FString& NameOrId);
