@@ -214,13 +214,6 @@ TArray<FArticyBranch> UArticyFlowPlayer::Explore(IArticyFlowObject* Node, bool b
 {
 	TArray<FArticyBranch> OutBranches;
 
-	// update nodes visited
-	auto* GVs = GetGVs();
-	if (GVs)
-	{
-		GVs->IncrementSeenCounter(Node);
-	}
-
 	//check stop condition
 	if((Depth > ExploreLimit || !Node || (Node != Cursor.GetInterface() && ShouldPauseOn(Node))))
 	{
@@ -317,20 +310,6 @@ TArray<FArticyBranch> UArticyFlowPlayer::Explore(IArticyFlowObject* Node, bool b
 				branch.Path.Insert(ptr, 0); //TODO inserting at front is not ideal performance wise
 			}
 		}
-	}
-
-	// Count valid branches at this node
-	if (GVs)
-	{
-		int ValidCount = 0;
-		for (auto& branch : OutBranches)
-		{
-			if (branch.bIsValid)
-			{
-				ValidCount++;
-			}
-		}
-		GVs->SetValidBranches(Node, ValidCount);
 	}
 
 	return OutBranches;
@@ -479,8 +458,16 @@ void UArticyFlowPlayer::PlayBranch(const FArticyBranch& Branch)
 		return;
 	}
 
-	for(auto node : Branch.Path)
+	for (auto node : Branch.Path)
+	{
 		node->Execute(GetGVs(), GetMethodsProvider());
+		// update nodes visited
+		auto* GVs = GetGVs();
+		if (GVs)
+		{
+			GVs->IncrementSeenCounter(Cast<IArticyFlowObject>(node.GetObject()));
+		}
+	}
 
 	Cursor = Branch.Path.Last();
 	UpdateAvailableBranches();
