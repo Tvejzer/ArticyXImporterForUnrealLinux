@@ -352,6 +352,16 @@ void UArticyFlowPlayer::UpdateAvailableBranchesInternal(bool Startup)
 		// Prune empty branches
 		AvailableBranches.RemoveAllSwap([](const FArticyBranch& branch) { return branch.Path.Num() == 0; });
 
+		if (AvailableBranches.IsEmpty())
+		{
+			// no valid branches, check for fallback
+			auto* GVs = GetGVs();
+			GVs->SetFallbackEvaluation(&*Cursor, true);
+			auto WithFallback = Explore(&*Cursor, bMustBeShadowed, 0, Startup);
+			GVs->SetFallbackEvaluation(&*Cursor, false);
+			AvailableBranches = WithFallback;
+		}
+
 		// NP: Every branch needs the index so that Play() can actually take a branch as input
 		for (int32 i = 0; i < AvailableBranches.Num(); i++)
 			AvailableBranches[i].Index = i;
@@ -461,6 +471,7 @@ void UArticyFlowPlayer::PlayBranch(const FArticyBranch& Branch)
 	for (auto node : Branch.Path)
 	{
 		node->Execute(GetGVs(), GetMethodsProvider());
+
 		// update nodes visited
 		auto* GVs = GetGVs();
 		if (GVs)

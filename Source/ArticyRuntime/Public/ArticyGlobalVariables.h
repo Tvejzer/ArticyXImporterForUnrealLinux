@@ -537,8 +537,7 @@ public:
 	int SetSeenCounter(const IArticyFlowObject* Object, int Value);
 	int IncrementSeenCounter(const IArticyFlowObject* Object);
 	bool Fallback(const IArticyFlowObject* Object);
-	int GetValidBranches(const IArticyFlowObject* Object) const;
-	int SetValidBranches(const IArticyFlowObject* Object, int Value);
+	void SetFallbackEvaluation(const IArticyFlowObject* Object, bool Value);
 
 	void PushSeen();
 	void PopSeen();
@@ -559,7 +558,7 @@ private:
 	static TMap<FName, TWeakObjectPtr<UArticyGlobalVariables>> OtherClones;
 
 	TArray<TMap<FArticyId, int>> VisitedNodes;
-	TMap<FArticyId, int> ValidBranches;
+	TArray<TMap<FArticyId, bool>> bIsFallbackEvaluation;
 
 	template <typename ArticyVariableType, typename VariablePayloadType>
 	void SetVariableValue(const FName Namespace, const FName Variable, const VariablePayloadType Value);

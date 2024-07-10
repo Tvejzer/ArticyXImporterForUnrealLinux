@@ -427,71 +427,82 @@ int UArticyGlobalVariables::IncrementSeenCounter(const IArticyFlowObject* Object
 
 bool UArticyGlobalVariables::Fallback(const IArticyFlowObject* Object)
 {
-	return GetValidBranches(Object) <= 1;
-}
-
-int UArticyGlobalVariables::GetValidBranches(const IArticyFlowObject* Object) const
-{
 	auto* Obj = Cast<UArticyPrimitive>(Object);
 	if (Obj)
 	{
 		FArticyId targetId;
-		// get owner of pin
-		if (auto* Pin = Cast<UArticyFlowPin>(Obj))
+		targetId = Obj->GetId();
+
+		if (bIsFallbackEvaluation.IsEmpty())
+			return false;
+
+		if (auto* state = bIsFallbackEvaluation.Top().Find(targetId))
 		{
-			targetId = Pin->Owner;
-		}
-		else
-		{
-			targetId = Obj->GetId();
-		}
-		// return if available
-		if (ValidBranches.Contains(targetId))
-		{
-			return ValidBranches[targetId];
+			return *state;
 		}
 	}
-	return 0;
+	else
+	{
+		if (!bIsFallbackEvaluation.IsEmpty())
+		{
+			for (const auto& Elem : bIsFallbackEvaluation.Top())
+			{
+				if (Elem.Value)
+				{
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
 }
 
-int UArticyGlobalVariables::SetValidBranches(const IArticyFlowObject* Object, int Value)
+void UArticyGlobalVariables::SetFallbackEvaluation(const IArticyFlowObject* Object, bool Value)
 {
 	auto* Obj = Cast<UArticyPrimitive>(Object);
 	if (Obj)
 	{
 		FArticyId targetId;
-		// get owner of pin
-		if (auto* Pin = Cast<UArticyFlowPin>(Obj))
+		targetId = Obj->GetId();
+
+		if (bIsFallbackEvaluation.IsEmpty())
 		{
-			targetId = Pin->Owner;
+			TMap<FArticyId, bool> Empty;
+			bIsFallbackEvaluation.Add(Empty);
 		}
-		else
-		{
-			targetId = Obj->GetId();
-		}
+
 		// update if already tracked
-		if (ValidBranches.Contains(targetId))
+		if (auto* state = bIsFallbackEvaluation.Top().Find(targetId))
 		{
-			return ValidBranches[targetId] = Value;
+			*state = Value;
 		}
-		// add and return
-		ValidBranches.Add(targetId, Value);
-		return Value;
+		else
+		{
+			bIsFallbackEvaluation.Top().Add(targetId, Value);
+		}
 	}
-	return 0;
+	return;
 }
 
 void UArticyGlobalVariables::PushSeen()
 {
 	if (!VisitedNodes.IsEmpty())
 	{
-		TMap<FArticyId, int> Copy = VisitedNodes.Top();
+		TMap<FArticyId, int> Copy(VisitedNodes.Top());
 		VisitedNodes.Push(Copy);
+	}
+	if (!bIsFallbackEvaluation.IsEmpty())
+	{
+		TMap<FArticyId, bool> Copy(bIsFallbackEvaluation.Top());
+		bIsFallbackEvaluation.Push(Copy);
 	}
 }
 
 void UArticyGlobalVariables::PopSeen()
 {
+	if (!bIsFallbackEvaluation.IsEmpty())
+		bIsFallbackEvaluation.Pop();
 	if (!VisitedNodes.IsEmpty())
 		VisitedNodes.Pop();
 }

@@ -928,12 +928,15 @@ int UArticyExpressoScripts::setSeenCounter(const FString& NameOrId, const int Va
 bool UArticyExpressoScripts::fallback(UArticyBaseObject* Object)
 {
 	UArticyGlobalVariables* GVs = GetGV();
-	auto* Obj = Cast<IArticyFlowObject>(Object);
-	if (GVs && Obj)
+	if (Object)
 	{
-		return GVs->Fallback(Obj);
+		auto* Obj = Cast<IArticyFlowObject>(Object);
+		if (GVs && Obj)
+		{
+			return GVs->Fallback(Obj);
+		}
 	}
-	return false;
+	return GVs->Fallback(nullptr);
 }
 
 bool UArticyExpressoScripts::fallback(const FString& NameOrId)
@@ -943,5 +946,5 @@ bool UArticyExpressoScripts::fallback(const FString& NameOrId)
 
 bool UArticyExpressoScripts::fallback()
 {
-	return false;
+	return fallback(nullptr);
 }
