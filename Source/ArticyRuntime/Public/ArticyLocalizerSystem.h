@@ -99,18 +99,18 @@ public:
 			return FText(SourceString);
 		}
 
-		// Return backup text, if relevant, before passing through key
+		// By default, return via the key
+		if (ResolveTextExtension && !Key.ToString().EndsWith(".PreviewText"))
+		{
+			return ResolveText(Outer, &Key);
+		}
+
+		// Return backup text, if relevant
 		if (BackupText)
 		{
 			return *BackupText;
 		}
 
-		// By default, return via the key
-		if (ResolveTextExtension)
-		{
-			return ResolveText(Outer, &Key);
-		}
-		
 		return Key;
 	}
 
