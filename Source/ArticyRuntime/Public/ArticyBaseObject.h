@@ -80,7 +80,7 @@ protected:
 	 * @param Property The text property to localize.
 	 * @return A localized FText object.
 	 */
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category = "Articy")
 	FText GetPropertyText(const FText Property);
 
 private:
