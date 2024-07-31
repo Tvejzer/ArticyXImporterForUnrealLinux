@@ -348,7 +348,7 @@ protected:
 	bool isPropInRange(const ExpressoType& Id_CloneId, const FString& Property, const FString& lowerBound, const FString& upperBound) const;
 
     /** Don't change the name, it's called like this in script fragments! */
-    void resetAllSeenCounter();
+    void resetAllSeenCounters();
     int getSeenCounter(UArticyBaseObject* Object = nullptr);
     int getSeenCounter(const FString& NameOrId);
     int setSeenCounter(const int Value = 1);
@@ -378,6 +378,8 @@ protected:
 
 	/** Script conditions that are not empty, but rather contain something that evaluates to bool, return that condition. */
 	static const bool& ConditionOrTrue(const bool &Condition) { return Condition; }
+    /** Script conditions that should evaluate to bool, but conditions evaluates to int. */
+    static const bool ConditionOrTrue(const int &Condition) { return Condition > 0; }
 	/** Script conditions that are empty or only contain a comment always return true. */
 	static bool ConditionOrTrue(void /*JustAComment*/) { return true; }
 
