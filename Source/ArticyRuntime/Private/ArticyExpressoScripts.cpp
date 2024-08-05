@@ -869,7 +869,7 @@ bool UArticyExpressoScripts::isPropInRange(const ExpressoType& Id_CloneId, const
 	return isPropInRange(getObjInternal(Id_CloneId), Property, lowerBound, upperBound);
 }
 
-void UArticyExpressoScripts::resetAllSeenCounter()
+void UArticyExpressoScripts::resetAllSeenCounters()
 {
 	UArticyGlobalVariables* GVs = GetGV();
 	if (GVs)
