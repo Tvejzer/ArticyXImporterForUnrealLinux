@@ -10,6 +10,7 @@
 	- Fix backup text display issue
 	- Address Unreal warnings
 	- Handle Unreal deprecations
+	- Fix missing Blueprint category
 
 ## Unreal Importer 1.1.1 Changelog :
 
