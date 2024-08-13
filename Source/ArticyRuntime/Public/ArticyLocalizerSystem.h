@@ -99,15 +99,16 @@ public:
 			return FText(SourceString);
 		}
 
+		// Return backup text, if relevant, before passing through key
+		if (BackupText)
+		{
+			return *BackupText;
+		}
+
 		// By default, return via the key
 		if (ResolveTextExtension)
 		{
 			return ResolveText(Outer, &Key);
-		}
-
-		if (BackupText)
-		{
-			return *BackupText;
 		}
 		
 		return Key;
