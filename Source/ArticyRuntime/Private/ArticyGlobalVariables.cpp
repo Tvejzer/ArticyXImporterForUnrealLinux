@@ -505,9 +505,9 @@ int UArticyGlobalVariables::SetSeenCounter(const IArticyFlowObject* Object, int 
         // update if already tracked
         if (auto* counter = VisitedNodes.Top().Find(targetId))
         {
-            *counter = Value;
-            return Value;
+            return *counter = Value;
         }
+
         // add and return
         VisitedNodes.Top().Add(targetId, Value);
         return Value;
@@ -537,8 +537,7 @@ int UArticyGlobalVariables::IncrementSeenCounter(const IArticyFlowObject* Object
         // update if already tracked
         if (auto* counter = VisitedNodes.Top().Find(targetId))
         {
-            *counter++;
-            return *counter;;
+            return ++(*counter);
         }
         // add and return
         VisitedNodes.Top().Add(targetId, 1);
