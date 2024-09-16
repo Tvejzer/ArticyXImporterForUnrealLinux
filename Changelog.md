@@ -1,3 +1,12 @@
+## Unreal Importer 1.2.1 Changelog :
+
+- Changes:
+	- Handle language variations in localization
+	- Move Expresso script loading code into runtime
+- Fixes:
+	- Fix issue with shadow states on multiple flow players
+	- Fix rich text tag processing
+
 ## Unreal Importer 1.2.0 Changelog :
 
 - New Features:
