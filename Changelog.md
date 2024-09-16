@@ -6,6 +6,7 @@
 - Fixes:
 	- Fix issue with shadow states on multiple flow players
 	- Fix rich text tag processing
+        - Fix escaping on source localization strings
 
 ## Unreal Importer 1.2.0 Changelog :
 
