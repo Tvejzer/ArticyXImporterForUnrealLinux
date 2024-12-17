@@ -30,6 +30,7 @@
 #include "Customizations/Details/ArticyPluginSettingsCustomization.h"
 #include "Customizations/Details/ArticyIdCustomization.h"
 #include "Customizations/Details/ArticyRefCustomization.h"
+#include "Slate/GV/SArticyGlobalVariablesDebugger.h"
 
 #if ENGINE_MAJOR_VERSION >= 5
 // In UE5, you use the ToolMenus API to extend the UI
@@ -182,7 +183,7 @@ void FArticyEditorModule::RegisterArticyToolbar()
 
 		// Add buttons
 		Section.AddMenuEntryWithCommandList(FArticyEditorCommands::Get().OpenArticyImporter, PluginCommands);
-		Section.AddMenuEntryWithCommandList(FArticyEditorCommands::Get().OpenArticyGVDebugger, PluginCommands);
+		Section.AddMenuEntryWithCommandList(FArticyEditorCommands::Get().OpenArticyGvDebugger, PluginCommands);
 	}
 #else 
 	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
@@ -221,7 +222,7 @@ TSharedRef<SWidget> FArticyEditorModule::OnGenerateArticyToolsMenu() const
 void FArticyEditorModule::RegisterAssetTypeActions()
 {
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-	AssetTools.RegisterAssetTypeActions(MakeShareable(new FAssetTypeActions_ArticyGV()));
+	AssetTools.RegisterAssetTypeActions(MakeShareable(new FAssetTypeActions_ArticyGv()));
 	AssetTools.RegisterAssetTypeActions(MakeShareable(new FAssetTypeActions_ArticyAlterativeGV()));
 }
 
@@ -238,8 +239,8 @@ void FArticyEditorModule::RegisterPluginCommands()
 		FExecuteAction::CreateRaw(this, &FArticyEditorModule::OpenArticyWindow),
 		FCanExecuteAction());
 
-	PluginCommands->MapAction(FArticyEditorCommands::Get().OpenArticyGVDebugger,
-		FExecuteAction::CreateRaw(this, &FArticyEditorModule::OpenArticyGVDebugger),
+	PluginCommands->MapAction(FArticyEditorCommands::Get().OpenArticyGvDebugger,
+		FExecuteAction::CreateRaw(this, &FArticyEditorModule::OpenArticyGvDebugger),
 		FCanExecuteAction());
 }
 
@@ -253,7 +254,7 @@ void FArticyEditorModule::RegisterToolTabs()
 		.SetIcon(FSlateIcon(FArticyEditorStyle::GetStyleSetName(), "ArticyImporter.ArticyImporter.16", "ArticyImporter.ArticyImporter.8"))
 		.SetMenuType(ETabSpawnerMenuType::Hidden);
 
-	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ArticyGVDebuggerTabID, FOnSpawnTab::CreateRaw(this, &FArticyEditorModule::OnSpawnArticyGVDebuggerTab))
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ArticyGVDebuggerTabID, FOnSpawnTab::CreateRaw(this, &FArticyEditorModule::OnSpawnArticyGvDebuggerTab))
 		.SetDisplayName(LOCTEXT("ArticyGVDebuggerTitle", "Articy GV Debugger"))
 		.SetIcon(FSlateIcon(FArticyEditorStyle::GetStyleSetName(), "ArticyImporter.ArticyImporter.16", "ArticyImporter.ArticyImporter.8"))
 		.SetMenuType(ETabSpawnerMenuType::Hidden);
@@ -327,7 +328,7 @@ void FArticyEditorModule::OpenArticyWindow()
 /**
  * Open the Articy global variables debugger tab.
  */
-void FArticyEditorModule::OpenArticyGVDebugger()
+void FArticyEditorModule::OpenArticyGvDebugger()
 {
 	// @TODO Engine versioning
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26
@@ -528,10 +529,10 @@ TSharedRef<SDockTab> FArticyEditorModule::OnSpawnArticyMenuTab(const FSpawnTabAr
  * @param SpawnTabArgs The arguments for spawning the tab.
  * @return The created dock tab widget.
  */
-TSharedRef<SDockTab> FArticyEditorModule::OnSpawnArticyGVDebuggerTab(const FSpawnTabArgs& SpawnTabArgs) const
+TSharedRef<SDockTab> FArticyEditorModule::OnSpawnArticyGvDebuggerTab(const FSpawnTabArgs& SpawnTabArgs)
 {
 	return SNew(SDockTab)
-		.TabRole(ETabRole::NomadTab)
+		.TabRole(NomadTab)
 		[
 			SNew(SArticyGlobalVariablesRuntimeDebugger).bInitiallyCollapsed(true)
 		];

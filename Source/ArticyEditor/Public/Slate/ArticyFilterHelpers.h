@@ -5,7 +5,6 @@
 #pragma once
 
 #include "ArticyGlobalVariables.h"
-#include "FrontendFilterBase.h"
 #include "Misc/TextFilterExpressionEvaluator.h"
 #include "ArticyObject.h"
 
@@ -16,25 +15,25 @@ typedef const FAssetData& FArticyObjectFilterType;
 typedef TFilterCollection<FArticyObjectFilterType> FArticyObjectFilterCollectionType;
 
 typedef const UArticyVariable*& FArticyVariableFilterType;
-typedef TFilterCollection<const UArticyVariable*&> FArticyVariableFilterCollectionType;
+typedef TFilterCollection<const UArticyVariable*&> UArticyVariableFilterCollectionType;
 
 /**
  * A filter for testing Articy objects for various traits such as display name, speaker name, text, etc.
  */
-class FFrontendFilter_ArticyObject : public IFilter<FArticyObjectFilterType>
+class FFrontendFilter_ArticyObject final : public IFilter<FArticyObjectFilterType>
 {
 public:
 	/** Constructor for FFrontendFilter_ArticyObject. */
 	FFrontendFilter_ArticyObject();
 	/** Destructor for FFrontendFilter_ArticyObject. */
-	~FFrontendFilter_ArticyObject();
+	virtual ~FFrontendFilter_ArticyObject() override;
 
 	// FFrontendFilter implementation
 	/** Gets the name of the filter.
 	 *
 	 * @return The name of the filter as a string.
 	 */
-	virtual FString GetName() const { return TEXT("ArticyObjectFilter"); }
+	virtual FString GetName() const override { return TEXT("ArticyObjectFilter"); }
 	/** Gets the display name of the filter.
 	 *
 	 * @return The display name of the filter as FText.
@@ -54,7 +53,7 @@ public:
 	 */
 	virtual bool PassesFilter(FArticyObjectFilterType InItem) const override;
 
-	DECLARE_DERIVED_EVENT(FFrontendFilter_ArticyObject, IFilter<FArticyObjectFilterType>::FChangedEvent, FChangedEvent);
+	DECLARE_DERIVED_EVENT(FFrontendFilter_ArticyObject, IFilter::FChangedEvent, FChangedEvent);
 	virtual FChangedEvent& OnChanged() override { return ChangedEvent; }
 
 	FChangedEvent ChangedEvent;
@@ -98,7 +97,7 @@ private:
 /**
  * A filter to restrict Articy objects to a specific class.
  */
-class FArticyClassRestrictionFilter : public IFilter<FArticyObjectFilterType>
+class FArticyClassRestrictionFilter final : public IFilter<FArticyObjectFilterType>
 {
 public:
 	/** Constructor for FArticyClassRestrictionFilter.
@@ -112,12 +111,12 @@ public:
 	 *
 	 * @param NewAllowedClass The new class to be allowed by the filter.
 	 */
-	void UpdateFilteredClass(TSubclassOf<UArticyObject> NewAllowedClass) { AllowedClass = NewAllowedClass;	OnChanged().Broadcast(); }
+	void UpdateFilteredClass(const TSubclassOf<UArticyObject>& NewAllowedClass) { AllowedClass = NewAllowedClass;	OnChanged().Broadcast(); }
 	/** Updates the exact class restriction.
 	 *
 	 * @param bNewExactClass Whether the class restriction is exact.
 	 */
-	void UpdateExactClass(bool bNewExactClass) { bExactClass = bNewExactClass; OnChanged().Broadcast(); }
+	void UpdateExactClass(const bool bNewExactClass) { bExactClass = bNewExactClass; OnChanged().Broadcast(); }
 	// IFilter implementation
 	/** Determines if the given item passes the class restriction filter.
 	 *
@@ -127,7 +126,7 @@ public:
 	virtual bool PassesFilter(FArticyObjectFilterType InItem) const override;
 
 	// IFilter implementation
-	DECLARE_DERIVED_EVENT(FArticyClassRestrictionFilter, IFilter<FArticyObjectFilterType>::FChangedEvent, FChangedEvent);
+	DECLARE_DERIVED_EVENT(FArticyClassRestrictionFilter, IFilter::FChangedEvent, FChangedEvent);
 	virtual FChangedEvent& OnChanged() override { return ChangedEvent; }
 
 	FChangedEvent ChangedEvent;
@@ -141,20 +140,20 @@ private:
 /**
  * A filter for testing Articy variables for various traits such as name, set name, etc.
  */
-class FFrontendFilter_ArticyVariable : public IFilter<FArticyVariableFilterType>
+class FFrontendFilter_ArticyVariable final : public IFilter<FArticyVariableFilterType>
 {
 public:
 	/** Constructor for FFrontendFilter_ArticyVariable. */
 	FFrontendFilter_ArticyVariable();
 	/** Destructor for FFrontendFilter_ArticyVariable. */
-	~FFrontendFilter_ArticyVariable();
+	virtual ~FFrontendFilter_ArticyVariable() override;
 
 	// FFrontendFilter implementation
 	/** Gets the name of the filter.
 	 *
 	 * @return The name of the filter as a string.
 	 */
-	virtual FString GetName() const { return TEXT("ArticyVariableFilter"); }
+	virtual FString GetName() const override { return TEXT("ArticyVariableFilter"); }
 	/** Gets the display name of the filter.
 	 *
 	 * @return The display name of the filter as FText.
@@ -174,7 +173,6 @@ public:
 	 */
 	virtual bool PassesFilter(FArticyVariableFilterType InItem) const override;
 
-public:
 	/** Returns the unsanitized and unsplit filter terms.
 	 *
 	 * @return The raw filter text.
@@ -199,10 +197,9 @@ private:
 	/** Expression evaluator to test against text expressions */
 	FTextFilterExpressionEvaluator TextFilterExpressionEvaluator;
 
-	DECLARE_DERIVED_EVENT(FFrontendFilter, IFilter<FArticyVariableFilterType>::FChangedEvent, FChangedEvent);
+	DECLARE_DERIVED_EVENT(FFrontendFilter, IFilter::FChangedEvent, FChangedEvent);
 	virtual FChangedEvent& OnChanged() override { return ChangedEvent; }
 
-private:
 	FChangedEvent ChangedEvent;
 
 };

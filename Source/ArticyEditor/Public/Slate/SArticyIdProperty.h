@@ -12,7 +12,6 @@
 #include "Customizations/ArticyEditorCustomizationManager.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Input/SButton.h"
-#include "ContentBrowserDelegates.h"
 #include "AssetPicker/SArticyObjectAssetPicker.h"
 
 namespace ArticyRefPropertyConstants
@@ -26,7 +25,7 @@ namespace ArticyRefPropertyConstants
  * Instead, it only moves the Window. This fixes a problem where the menu would continuously be resized with 1 pixel difference which causes flickering
  * in some edge cases (zoom level -1 and a menu that wasn't fixed size 300x300 like the default asset picker (300x350 would also flicker)
  */
-class SFixedSizeMenuComboButton : public SComboButton
+class SFixedSizeMenuComboButton final : public SComboButton
 {
 protected:
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
@@ -106,7 +105,6 @@ private:
 	/** The low box is used for the articyref customization system. */
 	TSharedPtr<SHorizontalBox> CustomizationButtonBox_Low;
 
-private:
 	/**
 	 * Updates the internal values and fires delegates.
 	 *

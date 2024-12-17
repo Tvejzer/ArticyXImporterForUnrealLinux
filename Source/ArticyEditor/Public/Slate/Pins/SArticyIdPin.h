@@ -12,7 +12,7 @@
 /**
  * A custom graph pin widget for Articy IDs.
  */
-class SArticyIdPin : public SGraphPin
+class SArticyIdPin final : public SGraphPin
 {
 public:
 	SLATE_BEGIN_ARGS(SArticyIdPin) {}
@@ -49,7 +49,6 @@ private:
 	 */
 	FArticyId ArticyId = FArticyId();
 
-private:
 	/**
 	 * Retrieves the Articy ID from the pin's default value string.
 	 *

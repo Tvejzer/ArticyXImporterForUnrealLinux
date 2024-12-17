@@ -221,5 +221,5 @@ private:
 	TSharedPtr<FFrontendFilter_ArticyVariable> VariableFilter;
 
 	/** Collection of frontend filters. */
-	TSharedPtr<FArticyVariableFilterCollectionType> FrontendFilters;
+	TSharedPtr<UArticyVariableFilterCollectionType> FrontendFilters;
 };

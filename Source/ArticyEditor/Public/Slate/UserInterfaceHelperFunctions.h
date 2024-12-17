@@ -101,4 +101,4 @@ namespace UserInterfaceHelperFunctions
 	 * @return True if the Articy object was successfully displayed; otherwise, false.
 	 */
 	const ARTICYEDITOR_API bool ShowObjectInArticy(const FArticyId ArticyId, bool bNewTab);
-};
+}

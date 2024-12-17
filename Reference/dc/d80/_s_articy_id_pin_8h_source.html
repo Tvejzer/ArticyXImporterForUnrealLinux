@@ -112,7 +112,7 @@ $(function(){initNavTree('dc/d80/_s_articy_id_pin_8h_source.html','../../'); ini
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;SGraphPin.h&gt;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
 <div class="foldopen" id="foldopen00015" data-start="{" data-end="};">
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="../../d3/d20/class_s_articy_id_pin.html">   15</a></span><span class="keyword">class </span><a class="code hl_class" href="../../d3/d20/class_s_articy_id_pin.html">SArticyIdPin</a> : <span class="keyword">public</span> SGraphPin</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="../../d3/d20/class_s_articy_id_pin.html">   15</a></span><span class="keyword">class </span><a class="code hl_class" href="../../d3/d20/class_s_articy_id_pin.html">SArticyIdPin</a> final : <span class="keyword">public</span> SGraphPin</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>{</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">public</span>:</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    SLATE_BEGIN_ARGS(<a class="code hl_class" href="../../d3/d20/class_s_articy_id_pin.html">SArticyIdPin</a>) {}</div>
@@ -131,11 +131,10 @@ $(function(){initNavTree('dc/d80/_s_articy_id_pin_8h_source.html','../../'); ini
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="keyword">private</span>:</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <a class="code hl_struct" href="../../df/d42/struct_f_articy_id.html">FArticyId</a> ArticyId = <a class="code hl_struct" href="../../df/d42/struct_f_articy_id.html">FArticyId</a>();</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <a class="code hl_struct" href="../../df/d42/struct_f_articy_id.html">FArticyId</a> GetArticyId() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="keywordtype">void</span> OnArticyIdChanged(<span class="keyword">const</span> <a class="code hl_struct" href="../../df/d42/struct_f_articy_id.html">FArticyId</a>&amp; NewArticyId);</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>};</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <a class="code hl_struct" href="../../df/d42/struct_f_articy_id.html">FArticyId</a> GetArticyId() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <span class="keywordtype">void</span> OnArticyIdChanged(<span class="keyword">const</span> <a class="code hl_struct" href="../../df/d42/struct_f_articy_id.html">FArticyId</a>&amp; NewArticyId);</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>};</div>
 </div>
 <div class="ttc" id="aclass_s_articy_id_pin_html"><div class="ttname"><a href="../../d3/d20/class_s_articy_id_pin.html">SArticyIdPin</a></div><div class="ttdef"><b>Definition</b> SArticyIdPin.h:16</div></div>
 <div class="ttc" id="aclass_s_articy_id_pin_html_a2a07192259842cf84b6959beae3fb39b"><div class="ttname"><a href="../../d3/d20/class_s_articy_id_pin.html#a2a07192259842cf84b6959beae3fb39b">SArticyIdPin::GetDefaultValueWidget</a></div><div class="ttdeci">virtual TSharedRef&lt; SWidget &gt; GetDefaultValueWidget() override</div><div class="ttdef"><b>Definition</b> SArticyIdPin.cpp:30</div></div>

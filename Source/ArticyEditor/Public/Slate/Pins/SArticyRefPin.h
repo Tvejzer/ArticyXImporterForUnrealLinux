@@ -6,14 +6,13 @@
 
 #include "CoreMinimal.h"
 #include "EdGraph/EdGraphNode.h"
-#include "ArticyBaseTypes.h"
 #include <SGraphPin.h>
 #include "ArticyRef.h"
 
 /**
  * A custom graph pin widget for Articy references.
  */
-class SArticyRefPin : public SGraphPin
+class SArticyRefPin final : public SGraphPin
 {
 public:
 	SLATE_BEGIN_ARGS(SArticyRefPin) {}
@@ -50,7 +49,6 @@ private:
 	 */
 	FArticyRef ArticyRef = FArticyRef();
 
-private:
 	/**
 	 * Retrieves the Articy reference from the pin's default value string.
 	 *
