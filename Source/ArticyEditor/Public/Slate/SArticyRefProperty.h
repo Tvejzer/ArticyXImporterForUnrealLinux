@@ -8,6 +8,7 @@
 #include "Slate/AssetPicker/SArticyObjectTileView.h"
 #include "Customizations/ArticyEditorCustomizationManager.h"
 #include "SArticyIdProperty.h"
+#include "AssetPicker/SArticyObjectAssetPicker.h"
 
 /**
  *  REFERENCE: SPropertyEditorAsset, which is the normal asset selection widget
@@ -18,7 +19,7 @@ DECLARE_DELEGATE_OneParam(FOnArticyRefChanged, const FArticyRef&);
 /**
  * SArticyRefProperty is a widget that displays and manages Articy references.
  */
-class ARTICYEDITOR_API SArticyRefProperty final : public SCompoundWidget
+class ARTICYEDITOR_API SArticyRefProperty : public SCompoundWidget
 {
 public:
 
@@ -88,6 +89,7 @@ private:
 	TSharedPtr<SArticyIdProperty> ArticyIdProperty;
 	TSharedPtr<FExtender> ArticyIdExtender;
 
+private:
 	/**
 	 * Creates additional reference widgets for the toolbar.
 	 *

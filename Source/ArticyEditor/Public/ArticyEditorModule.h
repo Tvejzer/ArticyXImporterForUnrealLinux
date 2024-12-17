@@ -10,6 +10,8 @@
 #include "ArticyEditorConsoleCommands.h"
 #include "Customizations/ArticyEditorCustomizationManager.h"
 #include "Framework/Commands/UICommandList.h"
+#include "Slate/SArticyIdProperty.h"
+
 
 DECLARE_LOG_CATEGORY_EXTERN(LogArticyEditor, Log, All)
 
@@ -31,7 +33,7 @@ enum EImportStatusValidity
 /**
  * Articy Editor Module class for managing customizations and commands for the Articy plugin in Unreal Engine.
  */
-class FArticyEditorModule final : public IModuleInterface
+class FArticyEditorModule : public IModuleInterface
 {
 public:
 
@@ -44,7 +46,7 @@ public:
 	 *
 	 * @return Reference to the Articy editor module.
 	 */
-	static FArticyEditorModule& Get()
+	static inline FArticyEditorModule& Get()
 	{
 		return FModuleManager::LoadModuleChecked<FArticyEditorModule>(TEXT("ArticyEditor"));
 	}
@@ -87,7 +89,7 @@ public:
 
 private:
 	void OpenArticyWindow();
-	void OpenArticyGvDebugger();
+	void OpenArticyGVDebugger();
 
 	EImportStatusValidity CheckImportStatusValidity() const;
 	void OnGeneratedCodeChanged(const TArray<struct FFileChangeData>& FileChanges) const;
@@ -101,9 +103,10 @@ private:
 	TSharedRef<SWidget> OnGenerateArticyToolsMenu() const;
 #endif
 
-	TSharedRef<SDockTab> OnSpawnArticyMenuTab(const FSpawnTabArgs& SpawnTabArgs) const;
-	TSharedRef<SDockTab> OnSpawnArticyGvDebuggerTab(const FSpawnTabArgs& SpawnTabArgs);
+	TSharedRef<class SDockTab> OnSpawnArticyMenuTab(const class FSpawnTabArgs& SpawnTabArgs) const;
+	TSharedRef<class SDockTab> OnSpawnArticyGVDebuggerTab(const class FSpawnTabArgs& SpawnTabArgs) const;
 
+private:
 	bool bIsImportQueued = false;
 	FDelegateHandle QueuedImportHandle;
 	FDelegateHandle GeneratedCodeWatcherHandle;

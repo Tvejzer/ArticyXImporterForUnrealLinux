@@ -249,7 +249,7 @@ void SArticyGlobalVariables::Construct(const FArguments& Args, TWeakObjectPtr<UA
 {
 	VariableFilter = MakeShareable(new FFrontendFilter_ArticyVariable);
 
-	FrontendFilters = MakeShareable(new UArticyVariableFilterCollectionType);
+	FrontendFilters = MakeShareable(new FArticyVariableFilterCollectionType);
 	FrontendFilters->OnChanged().AddSP(this, &SArticyGlobalVariables::OnFrontendFiltersChanged);
 	GlobalVariables = GV;
 

@@ -24,7 +24,7 @@
 #include "Widgets/Images/SImage.h"
 #include "IDirectoryWatcher.h"
 #include "Customizations/ArticyPinFactory.h"
-#include "Customizations/AssetActions/AssetTypeActions_ArticyGV.h"
+#include "Customizations/AssetActions/AssetTypeActions_ArticyGv.h"
 #include "Customizations/AssetActions/AssetTypeActions_ArticyAlterativeGV.h"
 #include "Customizations/Details/ArticyGVCustomization.h"
 #include "Customizations/Details/ArticyPluginSettingsCustomization.h"
@@ -240,7 +240,7 @@ void FArticyEditorModule::RegisterPluginCommands()
 		FCanExecuteAction());
 
 	PluginCommands->MapAction(FArticyEditorCommands::Get().OpenArticyGvDebugger,
-		FExecuteAction::CreateRaw(this, &FArticyEditorModule::OpenArticyGvDebugger),
+		FExecuteAction::CreateRaw(this, &FArticyEditorModule::OpenArticyGVDebugger),
 		FCanExecuteAction());
 }
 
@@ -254,7 +254,7 @@ void FArticyEditorModule::RegisterToolTabs()
 		.SetIcon(FSlateIcon(FArticyEditorStyle::GetStyleSetName(), "ArticyImporter.ArticyImporter.16", "ArticyImporter.ArticyImporter.8"))
 		.SetMenuType(ETabSpawnerMenuType::Hidden);
 
-	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ArticyGVDebuggerTabID, FOnSpawnTab::CreateRaw(this, &FArticyEditorModule::OnSpawnArticyGvDebuggerTab))
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ArticyGVDebuggerTabID, FOnSpawnTab::CreateRaw(this, &FArticyEditorModule::OnSpawnArticyGVDebuggerTab))
 		.SetDisplayName(LOCTEXT("ArticyGVDebuggerTitle", "Articy GV Debugger"))
 		.SetIcon(FSlateIcon(FArticyEditorStyle::GetStyleSetName(), "ArticyImporter.ArticyImporter.16", "ArticyImporter.ArticyImporter.8"))
 		.SetMenuType(ETabSpawnerMenuType::Hidden);
@@ -328,7 +328,7 @@ void FArticyEditorModule::OpenArticyWindow()
 /**
  * Open the Articy global variables debugger tab.
  */
-void FArticyEditorModule::OpenArticyGvDebugger()
+void FArticyEditorModule::OpenArticyGVDebugger()
 {
 	// @TODO Engine versioning
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26
@@ -529,10 +529,10 @@ TSharedRef<SDockTab> FArticyEditorModule::OnSpawnArticyMenuTab(const FSpawnTabAr
  * @param SpawnTabArgs The arguments for spawning the tab.
  * @return The created dock tab widget.
  */
-TSharedRef<SDockTab> FArticyEditorModule::OnSpawnArticyGvDebuggerTab(const FSpawnTabArgs& SpawnTabArgs)
+TSharedRef<SDockTab> FArticyEditorModule::OnSpawnArticyGVDebuggerTab(const FSpawnTabArgs& SpawnTabArgs) const
 {
 	return SNew(SDockTab)
-		.TabRole(NomadTab)
+		.TabRole(ETabRole::NomadTab)
 		[
 			SNew(SArticyGlobalVariablesRuntimeDebugger).bInitiallyCollapsed(true)
 		];
