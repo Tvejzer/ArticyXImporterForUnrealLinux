@@ -160,7 +160,7 @@ TArray<UArticyPackage*> FArticyEditorModule::GetPackagesSlow()
 #endif	
 
 	TArray<UArticyPackage*> Packages;
-	for (FAssetData& Data : PackageData)
+	for (const FAssetData& Data : PackageData)
 	{
 		Packages.Add(Cast<UArticyPackage>(Data.GetAsset()));
 	}
@@ -367,7 +367,7 @@ EImportStatusValidity FArticyEditorModule::CheckImportStatusValidity() const
 	AssetRegistryModule.Get().GetAssetsByPath(FName(*ArticyHelpers::GetArticyGeneratedFolder()), ArticyAssets, true);
 
 	// check if all assets are actually valid (classes not found would result in a nullptr)
-	for (FAssetData& Data : ArticyAssets)
+	for (const FAssetData& Data : ArticyAssets)
 	{
 		UObject* Asset = Data.GetAsset();
 

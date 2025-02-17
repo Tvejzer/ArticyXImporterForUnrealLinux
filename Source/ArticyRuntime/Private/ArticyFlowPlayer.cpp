@@ -524,7 +524,7 @@ void UArticyFlowPlayer::SetCursorToStartNode()
         return;
     }
 
-    const auto obj = StartOn.GetObject(this);
+    const auto& obj = StartOn.GetObject(this);
 
     TScriptInterface<IArticyFlowObject> ptr;
     ptr.SetObject(obj);
@@ -552,7 +552,7 @@ bool UArticyFlowPlayer::FastForwardToPause()
     int ffwdIndex;
     for (ffwdIndex = 0; ffwdIndex < firstPath.Num(); ++ffwdIndex)
     {
-        const auto node = firstPath[ffwdIndex];
+        const auto& node = firstPath[ffwdIndex];
         if (ShouldPauseOn(&*node))
         {
             //pause on this node
@@ -562,7 +562,7 @@ bool UArticyFlowPlayer::FastForwardToPause()
         auto bSplitFound = false;
         for (int b = 1; b < AvailableBranches.Num(); ++b)
         {
-            const auto path = AvailableBranches[b].Path;
+            const auto& path = AvailableBranches[b].Path;
             //it shouldn't be possible that one path is a subset of the other one
             //(shorter but all nodes equal to the other path)
             if (!ensure(path.IsValidIndex(ffwdIndex)) || path[ffwdIndex] != node)

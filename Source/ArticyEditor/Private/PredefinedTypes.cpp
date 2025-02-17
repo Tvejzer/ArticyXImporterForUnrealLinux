@@ -38,7 +38,7 @@ FArticyPredefTypes::FArticyPredefTypes()
 	Types.Add(TEXT("id"), PREDEFINE_TYPE(FArticyId));
 	Types.Add(TEXT("string"), PREDEFINE_TYPE_EXT(FString, "TEXT(\"\")", [](PROP_SETTER_PARAMS) { return Json->Type == EJson::String ? Json->AsString() : FString{}; }));
 
-	const auto TextType = PREDEFINE_TYPE_EXT(FText, TEXT("FText::GetEmpty()"), [](PROP_SETTER_PARAMS)
+	const auto& TextType = PREDEFINE_TYPE_EXT(FText, TEXT("FText::GetEmpty()"), [](PROP_SETTER_PARAMS)
 		{
 			if (Json->Type == EJson::String)
 			{
