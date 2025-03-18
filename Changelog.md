@@ -1,3 +1,10 @@
+## Unreal Importer 1.3.1 Changelog :
+
+- Fixes:
+    - Fix issues with nested rich text
+    - Improve stability of rich text imports
+    - Code cleanup for rich text imports
+
 ## Unreal Importer 1.3.0 Changelog :
 
 - New Features:
