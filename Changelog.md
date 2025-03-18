@@ -6,6 +6,7 @@
     - Code cleanup for rich text imports
 
 ## Unreal Importer 1.3.1 Changelog :
+
  - Changes:
     - Numerous code optimizations
 
