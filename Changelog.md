@@ -1,7 +1,11 @@
 ## Unreal Importer 1.4.0 Changelog :
 
 - New Features:
-    - Compatibility with Unreal Engine 5.6
+    - Unreal Engine 5.6 support
+
+## Unreal Importer 1.3.3 Changelog :
+
+- New Features:
     - Database lifecycle management
 
 ## Unreal Importer 1.3.2 Changelog :
