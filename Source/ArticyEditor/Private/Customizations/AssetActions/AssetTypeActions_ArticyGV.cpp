@@ -2,7 +2,7 @@
 // Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
 //
 
-#include "Customizations/AssetActions/AssetTypeActions_ArticyGv.h"
+#include "Customizations/AssetActions/AssetTypeActions_ArticyGV.h"
 #include "Customizations/ArticyGVEditor.h"
 
 /**
