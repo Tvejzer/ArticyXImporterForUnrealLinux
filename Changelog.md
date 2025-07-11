@@ -1,3 +1,8 @@
+## Unreal Importer 1.4.1 Changelog :
+
+- Fixes:
+    - Adjust binding for menu on Unreal Engine 5.6
+
 ## Unreal Importer 1.4.0 Changelog :
 
 - New Features:
